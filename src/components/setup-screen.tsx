@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { parseCSV, normalizeApiRows } from '@/data/processor'
-import type { RawActivityRow, ApiActivityRow } from '@/lib/types'
+import type { RawActivityRow, ApiActivityRow, ApiKey } from '@/lib/types'
 
 interface SetupScreenProps {
-  onData: (rows: RawActivityRow[], source: string) => void
+  onData: (rows: RawActivityRow[], source: string, keys?: ApiKey[]) => void
   onApiKey: (key: string) => void
 }
 
@@ -41,9 +41,21 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
       if (apiRows.length === 0) throw new Error('No activity data returned')
       const rows = normalizeApiRows(apiRows)
 
+      // Fetch API keys in parallel (best-effort)
+      let keys: ApiKey[] = []
+      try {
+        const keysRes = await fetch('https://openrouter.ai/api/v1/keys', {
+          headers: { 'Authorization': `Bearer ${key.trim()}` }
+        })
+        if (keysRes.ok) {
+          const keysJson = await keysRes.json()
+          keys = Array.isArray(keysJson) ? keysJson : (keysJson.data ?? [])
+        }
+      } catch { /* keys fetch is best-effort */ }
+
       localStorage.setItem('or_api_key', key.trim())
       onApiKey(key.trim())
-      onData(rows, 'api')
+      onData(rows, 'api', keys)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {

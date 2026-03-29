@@ -10,19 +10,21 @@ import { TabOverview } from '@/components/tab-overview'
 import { TabModels } from '@/components/tab-models'
 import { TabTiming } from '@/components/tab-timing'
 import { TabApps } from '@/components/tab-apps'
+import { TabKeys } from '@/components/tab-keys'
 import { buildColorMap } from '@/data/colors'
 import { fmt } from '@/lib/format'
-import type { ProcessedData } from '@/lib/types'
+import type { ProcessedData, ApiKey } from '@/lib/types'
 
 Chart.register(...registerables)
 
 interface DashboardProps {
   data: ProcessedData
   source: string
+  keys: ApiKey[]
   onReset: () => void
 }
 
-export function Dashboard({ data, source, onReset }: DashboardProps) {
+export function Dashboard({ data, source, keys, onReset }: DashboardProps) {
   const [budget, setBudget] = useState(() => {
     const saved = localStorage.getItem('or_budget')
     return saved ? parseFloat(saved) : 50
@@ -112,6 +114,7 @@ export function Dashboard({ data, source, onReset }: DashboardProps) {
           <TabsTrigger value="models">Models</TabsTrigger>
           <TabsTrigger value="timing">Timing</TabsTrigger>
           <TabsTrigger value="apps">Apps</TabsTrigger>
+          <TabsTrigger value="keys">Keys{keys.length > 0 ? ` (${keys.length})` : ''}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <TabOverview data={data} colors={colors} topModel={topModel} weekTrend={weekTrend} />
@@ -124,6 +127,9 @@ export function Dashboard({ data, source, onReset }: DashboardProps) {
         </TabsContent>
         <TabsContent value="apps">
           <TabApps data={data} colors={colors} />
+        </TabsContent>
+        <TabsContent value="keys">
+          <TabKeys keys={keys} />
         </TabsContent>
       </Tabs>
 

@@ -40,6 +40,21 @@ export interface HourlyBucket {
   calls: number
 }
 
+export interface ApiKey {
+  hash: string
+  name: string
+  label: string
+  disabled: boolean
+  limit: number | null
+  limit_remaining: number | null
+  usage: number
+  usage_daily: number
+  usage_weekly: number
+  usage_monthly: number
+  created_at: string
+  updated_at: string | null
+}
+
 export interface ProcessedData {
   days: string[]
   models: string[]
