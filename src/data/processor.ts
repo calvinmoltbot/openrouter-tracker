@@ -39,8 +39,9 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
   const dailyCost: Record<string, Record<string, number>> = {}
   const dailyCalls: Record<string, Record<string, number>> = {}
   const modelTotals: Record<string, { cost: number; calls: number; promptTok: number; complTok: number; avgCostPerCall: number; reasoningTok: number; cachedTok: number; cacheSavings: number; avgLatencyMs: number; avgTtftMs: number; latencyCount: number; _latencySum: number; _ttftSum: number }> = {}
-  const appStats: Record<string, { cost: number; calls: number; models: Record<string, number> }> = {}
+  const appStats: Record<string, { cost: number; calls: number; models: Record<string, number>; keys: Record<string, number> }> = {}
   const providerStats: Record<string, { cost: number; calls: number }> = {}
+  const keyStats: Record<string, { cost: number; calls: number; apps: Record<string, number>; models: Record<string, number> }> = {}
   const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, cost: 0, calls: 0 }))
   const weekly: Record<string, Record<string, number>> = {}
   let hasLogData = false
@@ -95,10 +96,20 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
       providerStats[provider].calls += reqCount
     }
 
-    if (!appStats[ag]) appStats[ag] = { cost: 0, calls: 0, models: {} }
+    if (!appStats[ag]) appStats[ag] = { cost: 0, calls: 0, models: {}, keys: {} }
     appStats[ag].cost += cost
     appStats[ag].calls += reqCount
     appStats[ag].models[mg] = (appStats[ag].models[mg] || 0) + cost
+
+    const keyName = r.api_key_name || ''
+    if (keyName) {
+      appStats[ag].keys[keyName] = (appStats[ag].keys[keyName] || 0) + cost
+      if (!keyStats[keyName]) keyStats[keyName] = { cost: 0, calls: 0, apps: {}, models: {} }
+      keyStats[keyName].cost += cost
+      keyStats[keyName].calls += reqCount
+      keyStats[keyName].apps[ag] = (keyStats[keyName].apps[ag] || 0) + cost
+      keyStats[keyName].models[mg] = (keyStats[keyName].models[mg] || 0) + cost
+    }
 
     hourly[hour].cost += cost
     hourly[hour].calls += reqCount
@@ -147,10 +158,16 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     }])),
     apps: Object.fromEntries(Object.entries(appStats).map(([k, v]) => [k, {
       cost: round(v.cost), calls: v.calls,
-      models: Object.fromEntries(Object.entries(v.models).map(([m, c]) => [m, round(c)]))
+      models: Object.fromEntries(Object.entries(v.models).map(([m, c]) => [m, round(c)])),
+      keys: Object.fromEntries(Object.entries(v.keys).map(([kn, c]) => [kn, round(c)])),
     }])),
     providers: Object.fromEntries(Object.entries(providerStats).map(([k, v]) => [k, {
       cost: round(v.cost), calls: v.calls,
+    }])),
+    keyStats: Object.fromEntries(Object.entries(keyStats).map(([k, v]) => [k, {
+      cost: round(v.cost), calls: v.calls,
+      apps: Object.fromEntries(Object.entries(v.apps).map(([a, c]) => [a, round(c)])),
+      models: Object.fromEntries(Object.entries(v.models).map(([m, c]) => [m, round(c)])),
     }])),
     hourly: hourly.map(h => ({ ...h, cost: round(h.cost) })),
     weekly,

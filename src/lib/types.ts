@@ -46,6 +46,7 @@ export interface AppStats {
   cost: number
   calls: number
   models: Record<string, number>
+  keys: Record<string, number>
 }
 
 export interface HourlyBucket {
@@ -74,6 +75,13 @@ export interface ProviderStats {
   calls: number
 }
 
+export interface KeyStats {
+  cost: number
+  calls: number
+  apps: Record<string, number>
+  models: Record<string, number>
+}
+
 export interface ProcessedData {
   days: string[]
   models: string[]
@@ -82,6 +90,7 @@ export interface ProcessedData {
   modelTotals: Record<string, ModelTotals>
   apps: Record<string, AppStats>
   providers: Record<string, ProviderStats>
+  keyStats: Record<string, KeyStats>
   hourly: HourlyBucket[]
   weekly: Record<string, Record<string, number>>
   totalCost: number
