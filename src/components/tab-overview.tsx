@@ -9,9 +9,10 @@ interface TabOverviewProps {
   colors: Record<string, string>
   topModel: string
   weekTrend: string
+  darkMode: boolean
 }
 
-export function TabOverview({ data, colors, topModel, weekTrend }: TabOverviewProps) {
+export function TabOverview({ data, colors, topModel, weekTrend, darkMode }: TabOverviewProps) {
   return (
     <>
       <div className="grid grid-cols-1 gap-4 mb-4">
@@ -21,7 +22,7 @@ export function TabOverview({ data, colors, topModel, weekTrend }: TabOverviewPr
             <CardDescription>Stacked bars showing which models drive spend each day</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="daily-cost" config={buildDailyCostConfig(data, colors)} />
+            <ChartBox id="daily-cost" config={buildDailyCostConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
       </div>
@@ -32,7 +33,7 @@ export function TabOverview({ data, colors, topModel, weekTrend }: TabOverviewPr
             <CardDescription>Total spend breakdown</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="pie" config={buildPieConfig(data, colors)} />
+            <ChartBox id="pie" config={buildPieConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
         <Card>
@@ -41,7 +42,7 @@ export function TabOverview({ data, colors, topModel, weekTrend }: TabOverviewPr
             <CardDescription>Week-over-week by model</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="weekly" config={buildWeeklyConfig(data, colors)} />
+            <ChartBox id="weekly" config={buildWeeklyConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
       </div>

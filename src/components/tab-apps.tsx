@@ -8,9 +8,10 @@ import type { ProcessedData } from '@/lib/types'
 interface TabAppsProps {
   data: ProcessedData
   colors: Record<string, string>
+  darkMode: boolean
 }
 
-export function TabApps({ data, colors }: TabAppsProps) {
+export function TabApps({ data, colors, darkMode }: TabAppsProps) {
   const hasKeys = data.hasLogData && Object.keys(data.keyStats).length > 0
   const appNames = Object.keys(data.apps).sort((a, b) => data.apps[b].cost - data.apps[a].cost)
 
@@ -23,7 +24,7 @@ export function TabApps({ data, colors }: TabAppsProps) {
             <CardDescription>Which applications cost money</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="app-cost" config={buildAppCostConfig(data)} />
+            <ChartBox id="app-cost" config={buildAppCostConfig(data, darkMode)} />
           </CardContent>
         </Card>
         <Card>
@@ -32,7 +33,7 @@ export function TabApps({ data, colors }: TabAppsProps) {
             <CardDescription>Which models each app uses</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="app-model" config={buildAppModelConfig(data, colors)} />
+            <ChartBox id="app-model" config={buildAppModelConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
       </div>

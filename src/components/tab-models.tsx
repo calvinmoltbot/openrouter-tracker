@@ -8,9 +8,10 @@ import type { ProcessedData } from '@/lib/types'
 interface TabModelsProps {
   data: ProcessedData
   colors: Record<string, string>
+  darkMode: boolean
 }
 
-export function TabModels({ data, colors }: TabModelsProps) {
+export function TabModels({ data, colors, darkMode }: TabModelsProps) {
   const hasLog = data.hasLogData
 
   return (
@@ -63,7 +64,7 @@ export function TabModels({ data, colors }: TabModelsProps) {
             <CardDescription>Average cost efficiency by model</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="cost-per-call" config={buildCostPerCallConfig(data, colors)} />
+            <ChartBox id="cost-per-call" config={buildCostPerCallConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
         <Card>
@@ -72,7 +73,7 @@ export function TabModels({ data, colors }: TabModelsProps) {
             <CardDescription>Prompt tokens processed (millions)</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="tokens" config={buildTokenVolumeConfig(data, colors)} />
+            <ChartBox id="tokens" config={buildTokenVolumeConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
       </div>

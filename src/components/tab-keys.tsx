@@ -8,9 +8,22 @@ import { PALETTE } from '@/data/colors'
 
 interface TabKeysProps {
   keys: ApiKey[]
+  darkMode: boolean
 }
 
-function buildKeySpendConfig(keys: ApiKey[]): ChartConfiguration {
+function themeColors(darkMode: boolean) {
+  return {
+    gridColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    tickColor: darkMode ? '#9ca3af' : '#6b7280',
+    legendColor: darkMode ? '#9ca3af' : '#6b7280',
+    tooltipBg: darkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+    tooltipTitleColor: darkMode ? '#f3f4f6' : '#111827',
+    tooltipBodyColor: darkMode ? '#d1d5db' : '#374151',
+  }
+}
+
+function buildKeySpendConfig(keys: ApiKey[], darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const sorted = [...keys].sort((a, b) => b.usage - a.usage)
   return {
     type: 'bar',
@@ -27,15 +40,24 @@ function buildKeySpendConfig(keys: ApiKey[]): ChartConfiguration {
     options: {
       indexAxis: 'y',
       responsive: true,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+        },
+      },
       scales: {
-        x: { ticks: { callback: v => '$' + Number(v).toFixed(2) } },
+        x: { grid: { color: tc.gridColor }, ticks: { callback: v => '$' + Number(v).toFixed(2), color: tc.tickColor } },
+        y: { grid: { display: false }, ticks: { color: tc.tickColor } },
       },
     },
   }
 }
 
-function buildKeyMonthlyConfig(keys: ApiKey[]): ChartConfiguration {
+function buildKeyMonthlyConfig(keys: ApiKey[], darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const sorted = [...keys].sort((a, b) => b.usage_monthly - a.usage_monthly)
   return {
     type: 'bar',
@@ -62,15 +84,23 @@ function buildKeyMonthlyConfig(keys: ApiKey[]): ChartConfiguration {
     options: {
       indexAxis: 'y',
       responsive: true,
-      plugins: { legend: { position: 'bottom' } },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: tc.legendColor } },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+        },
+      },
       scales: {
-        x: { stacked: false, ticks: { callback: v => '$' + Number(v).toFixed(2) } },
+        x: { stacked: false, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + Number(v).toFixed(2), color: tc.tickColor } },
+        y: { grid: { display: false }, ticks: { color: tc.tickColor } },
       },
     },
   }
 }
 
-export function TabKeys({ keys }: TabKeysProps) {
+export function TabKeys({ keys, darkMode }: TabKeysProps) {
   if (keys.length === 0) {
     return (
       <Card>
@@ -112,7 +142,7 @@ export function TabKeys({ keys }: TabKeysProps) {
                     {k.name || k.label || k.hash.slice(0, 12)}
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${k.disabled ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${k.disabled ? 'bg-red-500/15 text-red-400' : 'bg-green-500/15 text-green-400'}`}>
                       {k.disabled ? 'Disabled' : 'Active'}
                     </span>
                   </TableCell>
@@ -136,7 +166,7 @@ export function TabKeys({ keys }: TabKeysProps) {
             <CardDescription>All-time usage per API key</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="key-total-spend" config={buildKeySpendConfig(keys)} />
+            <ChartBox id="key-total-spend" config={buildKeySpendConfig(keys, darkMode)} />
           </CardContent>
         </Card>
         <Card>
@@ -145,7 +175,7 @@ export function TabKeys({ keys }: TabKeysProps) {
             <CardDescription>Monthly / weekly / daily breakdown per key</CardDescription>
           </CardHeader>
           <CardContent>
-            <ChartBox id="key-period-spend" config={buildKeyMonthlyConfig(keys)} />
+            <ChartBox id="key-period-spend" config={buildKeyMonthlyConfig(keys, darkMode)} />
           </CardContent>
         </Card>
       </div>

@@ -12,7 +12,7 @@ export function BudgetBar({ spent, budget, onChange }: BudgetBarProps) {
   const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981'
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-white p-3.5 px-5 shadow-sm ring-1 ring-foreground/10 mb-4">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl bg-card p-3.5 px-5 ring-1 ring-foreground/10 mb-4">
       <label className="text-sm font-medium">Monthly Budget:</label>
       <span>$</span>
       <Input
@@ -23,7 +23,7 @@ export function BudgetBar({ spent, budget, onChange }: BudgetBarProps) {
         step={5}
         className="w-24"
       />
-      <div className="flex-1 min-w-[200px] h-6 bg-gray-200 rounded-xl overflow-hidden relative">
+      <div className="flex-1 min-w-[200px] h-6 bg-muted rounded-xl overflow-hidden relative">
         <div
           className="h-full rounded-xl transition-[width] duration-300 flex items-center pl-2.5 text-[11px] font-semibold text-white min-w-fit"
           style={{ width: `${Math.max(pct, 8)}%`, background: color }}

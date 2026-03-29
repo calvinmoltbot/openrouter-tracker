@@ -1,6 +1,34 @@
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import type { ProcessedData } from '@/lib/types'
 import { fmt } from '@/lib/format'
+
+function useCountUp(target: number, duration = 800) {
+  const [value, setValue] = useState(0)
+  const startTime = useRef<number | null>(null)
+  const rafId = useRef<number>(0)
+
+  useEffect(() => {
+    startTime.current = null
+    const t = target
+
+    function step(timestamp: number) {
+      if (startTime.current === null) startTime.current = timestamp
+      const elapsed = timestamp - startTime.current
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setValue(t * eased)
+      if (progress < 1) {
+        rafId.current = requestAnimationFrame(step)
+      }
+    }
+
+    rafId.current = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(rafId.current)
+  }, [target, duration])
+
+  return value
+}
 
 interface KpiRowProps {
   data: ProcessedData
@@ -11,26 +39,31 @@ interface KpiRowProps {
 }
 
 export function KpiRow({ data, last7Total, weekTrend, topModel, topPct }: KpiRowProps) {
+  const totalCostAnimated = useCountUp(data.totalCost)
+  const topModelCostAnimated = useCountUp(data.modelTotals[topModel]?.cost || 0)
+  const last7Animated = useCountUp(last7Total)
+  const dailyAvgAnimated = useCountUp(data.totalCost / Math.max(data.days.length, 1))
+
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 mb-4">
       <Card className="border-l-4 border-l-red-500">
         <CardContent>
           <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Total Spend</div>
-          <div className="text-2xl font-bold">{fmt(data.totalCost)}</div>
+          <div className="text-2xl font-bold">{fmt(totalCostAnimated)}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{data.totalCalls.toLocaleString()} API calls</div>
         </CardContent>
       </Card>
       <Card className="border-l-4 border-l-amber-500">
         <CardContent>
           <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Top Model Cost</div>
-          <div className="text-2xl font-bold">{fmt(data.modelTotals[topModel]?.cost || 0)}</div>
+          <div className="text-2xl font-bold">{fmt(topModelCostAnimated)}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{topModel} ({topPct}%)</div>
         </CardContent>
       </Card>
       <Card className="border-l-4 border-l-blue-500">
         <CardContent>
           <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Last 7 Days</div>
-          <div className="text-2xl font-bold">{fmt(last7Total)}</div>
+          <div className="text-2xl font-bold">{fmt(last7Animated)}</div>
           <div className="text-xs mt-0.5" style={{ color: parseInt(weekTrend) < 0 ? '#10b981' : '#ef4444' }}>
             {weekTrend}% vs prior 7d
           </div>
@@ -39,7 +72,7 @@ export function KpiRow({ data, last7Total, weekTrend, topModel, topPct }: KpiRow
       <Card className="border-l-4 border-l-blue-500">
         <CardContent>
           <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Daily Avg</div>
-          <div className="text-2xl font-bold">{fmt(data.totalCost / Math.max(data.days.length, 1))}</div>
+          <div className="text-2xl font-bold">{fmt(dailyAvgAnimated)}</div>
           <div className="text-xs text-muted-foreground mt-0.5">
             Projected: ~${(data.totalCost / Math.max(data.days.length, 1) * 30).toFixed(0)}/mo
           </div>

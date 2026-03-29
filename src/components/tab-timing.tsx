@@ -5,9 +5,10 @@ import type { ProcessedData } from '@/lib/types'
 
 interface TabTimingProps {
   data: ProcessedData
+  darkMode: boolean
 }
 
-export function TabTiming({ data }: TabTimingProps) {
+export function TabTiming({ data, darkMode }: TabTimingProps) {
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(420px,1fr))] gap-4 mb-4">
       <Card>
@@ -16,7 +17,7 @@ export function TabTiming({ data }: TabTimingProps) {
           <CardDescription>When are your cron jobs firing?</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartBox id="hourly-cost" config={buildHourlyCostConfig(data)} />
+          <ChartBox id="hourly-cost" config={buildHourlyCostConfig(data, darkMode)} />
         </CardContent>
       </Card>
       <Card>
@@ -25,7 +26,7 @@ export function TabTiming({ data }: TabTimingProps) {
           <CardDescription>Call volume reveals scheduling clusters</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartBox id="hourly-calls" config={buildHourlyCallsConfig(data)} />
+          <ChartBox id="hourly-calls" config={buildHourlyCallsConfig(data, darkMode)} />
         </CardContent>
       </Card>
     </div>

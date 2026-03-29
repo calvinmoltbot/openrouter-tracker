@@ -5,7 +5,20 @@ import { fmt } from '@/lib/format'
 
 type Colors = Record<string, string>
 
-export function buildDailyCostConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+function themeColors(darkMode: boolean) {
+  return {
+    gridColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+    tickColor: darkMode ? '#9ca3af' : '#6b7280',
+    legendColor: darkMode ? '#9ca3af' : '#6b7280',
+    tooltipBg: darkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
+    tooltipTitleColor: darkMode ? '#f3f4f6' : '#111827',
+    tooltipBodyColor: darkMode ? '#d1d5db' : '#374151',
+    borderColor: darkMode ? 'rgba(255,255,255,0.15)' : '#fff',
+  }
+}
+
+export function buildDailyCostConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   return {
     type: 'bar',
     data: {
@@ -21,8 +34,11 @@ export function buildDailyCostConfig(data: ProcessedData, colors: Colors): Chart
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+        legend: { position: 'top', labels: { usePointStyle: true, padding: 12, font: { size: 11 }, color: tc.legendColor } },
         tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
           callbacks: {
             label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 4)}`,
             footer: items => `Total: ${fmt(items.reduce((s, i) => s + i.parsed.y, 0), 4)}`
@@ -30,14 +46,15 @@ export function buildDailyCostConfig(data: ProcessedData, colors: Colors): Chart
         }
       },
       scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 } } },
-        y: { stacked: true, ticks: { callback: v => '$' + v } }
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, color: tc.tickColor } },
+        y: { stacked: true, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
       }
     }
   }
 }
 
-export function buildPieConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+export function buildPieConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   return {
     type: 'doughnut',
     data: {
@@ -45,14 +62,17 @@ export function buildPieConfig(data: ProcessedData, colors: Colors): ChartConfig
       datasets: [{
         data: data.models.filter(m => data.modelTotals[m]?.cost > 0.01).map(m => data.modelTotals[m].cost),
         backgroundColor: data.models.filter(m => data.modelTotals[m]?.cost > 0.01).map(m => colors[m] + 'cc'),
-        borderWidth: 2, borderColor: '#fff'
+        borderWidth: 2, borderColor: tc.borderColor
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '55%',
       plugins: {
-        legend: { position: 'right', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+        legend: { position: 'right', labels: { usePointStyle: true, padding: 12, font: { size: 11 }, color: tc.legendColor } },
         tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
           callbacks: {
             label: ctx => {
               const t = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0)
@@ -65,7 +85,8 @@ export function buildPieConfig(data: ProcessedData, colors: Colors): ChartConfig
   }
 }
 
-export function buildWeeklyConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+export function buildWeeklyConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const weeks = Object.keys(data.weekly).sort()
   return {
     type: 'bar',
@@ -82,18 +103,24 @@ export function buildWeeklyConfig(data: ProcessedData, colors: Colors): ChartCon
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 11 } } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } }
+        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 11 }, color: tc.legendColor } },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` }
+        }
       },
       scales: {
-        x: { stacked: true, grid: { display: false } },
-        y: { stacked: true, ticks: { callback: v => '$' + v } }
+        x: { stacked: true, grid: { display: false }, ticks: { color: tc.tickColor } },
+        y: { stacked: true, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
       }
     }
   }
 }
 
-export function buildHourlyCostConfig(data: ProcessedData): ChartConfiguration {
+export function buildHourlyCostConfig(data: ProcessedData, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const barColors = data.hourly.map(h => h.cost > 5 ? '#ef4444cc' : h.cost > 2 ? '#f59e0bcc' : '#3b82f6cc')
   return {
     type: 'bar',
@@ -103,13 +130,25 @@ export function buildHourlyCostConfig(data: ProcessedData): ChartConfiguration {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.y) } } },
-      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { ticks: { callback: v => '$' + v } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => fmt(ctx.parsed.y) }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: tc.tickColor } },
+        y: { grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
+      }
     }
   }
 }
 
-export function buildHourlyCallsConfig(data: ProcessedData): ChartConfiguration {
+export function buildHourlyCallsConfig(data: ProcessedData, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   return {
     type: 'bar',
     data: {
@@ -118,13 +157,25 @@ export function buildHourlyCallsConfig(data: ProcessedData): ChartConfiguration 
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${ctx.parsed.y} calls` } } },
-      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: {} }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => `${ctx.parsed.y} calls` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: tc.tickColor } },
+        y: { grid: { color: tc.gridColor }, ticks: { color: tc.tickColor } }
+      }
     }
   }
 }
 
-export function buildAppCostConfig(data: ProcessedData): ChartConfiguration {
+export function buildAppCostConfig(data: ProcessedData, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const appNames = Object.keys(data.apps).sort((a, b) => data.apps[b].cost - data.apps[a].cost)
   return {
     type: 'bar',
@@ -134,13 +185,25 @@ export function buildAppCostConfig(data: ProcessedData): ChartConfiguration {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => `${fmt(ctx.parsed.y)} (${data.apps[appNames[ctx.dataIndex]].calls} calls)` } } },
-      scales: { x: { grid: { display: false } }, y: { ticks: { callback: v => '$' + v } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => `${fmt(ctx.parsed.y)} (${data.apps[appNames[ctx.dataIndex]].calls} calls)` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: tc.tickColor } },
+        y: { grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
+      }
     }
   }
 }
 
-export function buildAppModelConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+export function buildAppModelConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const appNames = Object.keys(data.apps).sort((a, b) => data.apps[b].cost - data.apps[a].cost)
   const appModels = [...new Set(appNames.flatMap(a => Object.keys(data.apps[a].models)))]
   return {
@@ -156,15 +219,24 @@ export function buildAppModelConfig(data: ProcessedData, colors: Colors): ChartC
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 10 } } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 4)}` } }
+        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 10 }, color: tc.legendColor } },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 4)}` }
+        }
       },
-      scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, ticks: { callback: v => '$' + v } } }
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { color: tc.tickColor } },
+        y: { stacked: true, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
+      }
     }
   }
 }
 
-export function buildCostPerCallConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+export function buildCostPerCallConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   const sorted = [...data.models].sort((a, b) => (data.modelTotals[b]?.avgCostPerCall || 0) - (data.modelTotals[a]?.avgCostPerCall || 0))
   return {
     type: 'bar',
@@ -178,13 +250,25 @@ export function buildCostPerCallConfig(data: ProcessedData, colors: Colors): Cha
     },
     options: {
       responsive: true, maintainAspectRatio: false, indexAxis: 'y' as const,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.x / 1000, 6) + '/call' } } },
-      scales: { x: { ticks: { callback: v => '$' + (Number(v) / 1000).toFixed(4) } }, y: { grid: { display: false } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => fmt(ctx.parsed.x / 1000, 6) + '/call' }
+        }
+      },
+      scales: {
+        x: { grid: { color: tc.gridColor }, ticks: { callback: v => '$' + (Number(v) / 1000).toFixed(4), color: tc.tickColor } },
+        y: { grid: { display: false }, ticks: { color: tc.tickColor } }
+      }
     }
   }
 }
 
-export function buildTokenVolumeConfig(data: ProcessedData, colors: Colors): ChartConfiguration {
+export function buildTokenVolumeConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
   return {
     type: 'bar',
     data: {
@@ -197,8 +281,19 @@ export function buildTokenVolumeConfig(data: ProcessedData, colors: Colors): Cha
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + 'M tokens' } } },
-      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } }, y: { ticks: { callback: v => v + 'M' } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + 'M tokens' }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, color: tc.tickColor } },
+        y: { grid: { color: tc.gridColor }, ticks: { callback: v => v + 'M', color: tc.tickColor } }
+      }
     }
   }
 }

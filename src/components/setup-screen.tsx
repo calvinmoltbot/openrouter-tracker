@@ -3,8 +3,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Sun, Moon } from 'lucide-react'
 import { parseCSV, normalizeApiRows } from '@/data/processor'
+import { useTheme } from '@/lib/theme'
 import type { RawActivityRow, ApiActivityRow, ApiKey } from '@/lib/types'
 
 interface SetupScreenProps {
@@ -18,6 +19,7 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
   const [error, setError] = useState('')
   const [dragActive, setDragActive] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const { darkMode, toggleTheme } = useTheme()
 
   const fetchFromApi = async () => {
     if (!key.trim()) return setError('Please enter your provisioning API key')
@@ -85,7 +87,16 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
   }
 
   return (
-    <div className="max-w-[600px] mx-auto mt-20 text-center">
+    <div className="max-w-[600px] mx-auto mt-20 text-center relative">
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={toggleTheme}
+        className="absolute top-0 right-0 size-8"
+      >
+        {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
+      </Button>
+
       <h1 className="text-[28px] font-bold mb-2">OpenRouter Cost Tracker</h1>
       <p className="text-muted-foreground mb-6">Monitor your API spending across models and apps</p>
 
@@ -122,7 +133,7 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
         <CardContent className="space-y-3">
           <h3 className="text-[15px] font-semibold">Option 2: Upload CSV Export</h3>
           <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors text-muted-foreground text-sm ${dragActive ? 'border-blue-500 bg-blue-500/5' : 'border-gray-300 hover:border-blue-500'}`}
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors text-muted-foreground text-sm ${dragActive ? 'border-blue-500 bg-blue-500/5' : 'border-border hover:border-blue-500'}`}
             onClick={() => fileRef.current?.click()}
             onDragOver={(e: React.DragEvent) => { e.preventDefault(); setDragActive(true) }}
             onDragLeave={() => setDragActive(false)}

@@ -13,6 +13,7 @@ import { TabApps } from '@/components/tab-apps'
 import { TabKeys } from '@/components/tab-keys'
 import { buildColorMap } from '@/data/colors'
 import { fmt } from '@/lib/format'
+import { useTheme } from '@/lib/theme'
 import type { ProcessedData, ApiKey } from '@/lib/types'
 
 Chart.register(...registerables)
@@ -30,6 +31,7 @@ export function Dashboard({ data, source, keys, onReset }: DashboardProps) {
     return saved ? parseFloat(saved) : 50
   })
 
+  const { darkMode } = useTheme()
   const colors = buildColorMap(data.models)
 
   useEffect(() => {
@@ -116,20 +118,20 @@ export function Dashboard({ data, source, keys, onReset }: DashboardProps) {
           <TabsTrigger value="apps">Apps</TabsTrigger>
           <TabsTrigger value="keys">Keys{keys.length > 0 ? ` (${keys.length})` : ''}</TabsTrigger>
         </TabsList>
-        <TabsContent value="overview">
-          <TabOverview data={data} colors={colors} topModel={topModel} weekTrend={weekTrend} />
+        <TabsContent value="overview" className="animate-in fade-in duration-300">
+          <TabOverview data={data} colors={colors} topModel={topModel} weekTrend={weekTrend} darkMode={darkMode} />
         </TabsContent>
-        <TabsContent value="models">
-          <TabModels data={data} colors={colors} />
+        <TabsContent value="models" className="animate-in fade-in duration-300">
+          <TabModels data={data} colors={colors} darkMode={darkMode} />
         </TabsContent>
-        <TabsContent value="timing">
-          <TabTiming data={data} />
+        <TabsContent value="timing" className="animate-in fade-in duration-300">
+          <TabTiming data={data} darkMode={darkMode} />
         </TabsContent>
-        <TabsContent value="apps">
-          <TabApps data={data} colors={colors} />
+        <TabsContent value="apps" className="animate-in fade-in duration-300">
+          <TabApps data={data} colors={colors} darkMode={darkMode} />
         </TabsContent>
-        <TabsContent value="keys">
-          <TabKeys keys={keys} />
+        <TabsContent value="keys" className="animate-in fade-in duration-300">
+          <TabKeys keys={keys} darkMode={darkMode} />
         </TabsContent>
       </Tabs>
 
