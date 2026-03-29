@@ -1,18 +1,19 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Chart, registerables } from 'chart.js'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { Chart, registerables, ChartConfiguration } from 'chart.js'
 import { processRows, parseCSV } from './dataProcessor'
 import { buildColorMap, PALETTE } from './colors'
+import type { RawActivityRow, ProcessedData } from '@/lib/types'
 
 Chart.register(...registerables)
 
 // ── Helpers ──
-const fmt = (n, d = 2) => '$' + n.toFixed(d)
-const fmtK = n => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : n.toLocaleString()
+const fmt = (n: number, d = 2) => '$' + n.toFixed(d)
+export const fmtK = (n: number) => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(0) + 'K' : n.toLocaleString()
 
 // ── ChartBox: renders a Chart.js canvas ──
-function ChartBox({ id, config, height = 300 }) {
-  const canvasRef = useRef(null)
-  const chartRef = useRef(null)
+function ChartBox({ config, height = 300 }: { id: string; config: ChartConfiguration; height?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const chartRef = useRef<Chart | null>(null)
 
   useEffect(() => {
     if (chartRef.current) chartRef.current.destroy()
@@ -25,19 +26,18 @@ function ChartBox({ id, config, height = 300 }) {
 }
 
 // ── Setup Screen ──
-function SetupScreen({ onData, onApiKey }) {
+function SetupScreen({ onData, onApiKey }: { onData: (rows: RawActivityRow[], source: string) => void; onApiKey: (key: string) => void }) {
   const [key, setKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dragActive, setDragActive] = useState(false)
-  const fileRef = useRef()
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const fetchFromApi = async () => {
     if (!key.trim()) return setError('Please enter your provisioning API key')
     setLoading(true)
     setError('')
     try {
-      // Fetch last 30 days
       const res = await fetch('https://openrouter.ai/api/v1/activity', {
         headers: { 'Authorization': `Bearer ${key.trim()}` }
       })
@@ -46,12 +46,11 @@ function SetupScreen({ onData, onApiKey }) {
         throw new Error(`API returned ${res.status}: ${body.slice(0, 200)}`)
       }
       const json = await res.json()
-      // The API response format may vary - try to extract rows
-      let rows = []
+      let rows: RawActivityRow[] = []
       if (Array.isArray(json)) rows = json
       else if (json.data && Array.isArray(json.data)) rows = json.data
       else if (json.activity) rows = json.activity
-      else rows = [json] // fallback
+      else rows = [json]
 
       if (rows.length === 0) throw new Error('No activity data returned')
 
@@ -59,28 +58,28 @@ function SetupScreen({ onData, onApiKey }) {
       onApiKey(key.trim())
       onData(rows, 'api')
     } catch (e) {
-      setError(e.message)
+      setError(e instanceof Error ? e.message : String(e))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleFile = (file) => {
+  const handleFile = (file: File | undefined) => {
     if (!file) return
     const reader = new FileReader()
     reader.onload = (e) => {
       try {
-        const rows = parseCSV(e.target.result)
+        const rows = parseCSV(e.target?.result as string)
         if (rows.length === 0) return setError('No data found in CSV')
         onData(rows, 'csv')
       } catch (err) {
-        setError('Could not parse CSV: ' + err.message)
+        setError('Could not parse CSV: ' + (err instanceof Error ? err.message : String(err)))
       }
     }
     reader.readAsText(file)
   }
 
-  const onDrop = (e) => {
+  const onDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragActive(false)
     if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0])
@@ -119,12 +118,12 @@ function SetupScreen({ onData, onApiKey }) {
         <div
           className={'file-drop' + (dragActive ? ' active' : '')}
           onClick={() => fileRef.current?.click()}
-          onDragOver={e => { e.preventDefault(); setDragActive(true) }}
+          onDragOver={(e: React.DragEvent) => { e.preventDefault(); setDragActive(true) }}
           onDragLeave={() => setDragActive(false)}
           onDrop={onDrop}
         >
           Drop your OpenRouter activity CSV here, or click to browse
-          <input ref={fileRef} type="file" accept=".csv" onChange={e => handleFile(e.target.files[0])} />
+          <input ref={fileRef} type="file" accept=".csv" onChange={e => handleFile(e.target.files?.[0])} />
         </div>
         <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
           Export from <a href="https://openrouter.ai/activity" target="_blank" rel="noopener" style={{ color: '#3b82f6' }}>OpenRouter Activity page</a>
@@ -135,10 +134,9 @@ function SetupScreen({ onData, onApiKey }) {
 }
 
 // ── Budget Bar ──
-function BudgetBar({ spent, budget, onChange }) {
+function BudgetBar({ spent, budget, onChange }: { spent: number; budget: number; onChange: (v: number) => void }) {
   const pct = budget > 0 ? Math.min((spent / budget) * 100, 100) : 0
   const color = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981'
-  const projected = spent // could project based on days remaining
 
   return (
     <div className="budget-row">
@@ -163,7 +161,7 @@ function BudgetBar({ spent, budget, onChange }) {
 }
 
 // ── Main Dashboard ──
-function Dashboard({ data, source, onReset }) {
+function Dashboard({ data, source, onReset }: { data: ProcessedData; source: string; onReset: () => void }) {
   const [tab, setTab] = useState('overview')
   const [budget, setBudget] = useState(() => {
     const saved = localStorage.getItem('or_budget')
@@ -205,8 +203,8 @@ function Dashboard({ data, source, onReset }) {
     URL.revokeObjectURL(url)
   }
 
-  // Chart configs
-  const dailyCostConfig = {
+  // Chart configs — typed as 'as const' satisfying ChartConfiguration
+  const dailyCostConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: data.days.map(d => d.slice(5)),
@@ -236,7 +234,7 @@ function Dashboard({ data, source, onReset }) {
     }
   }
 
-  const pieConfig = {
+  const pieConfig: ChartConfiguration = {
     type: 'doughnut',
     data: {
       labels: data.models.filter(m => data.modelTotals[m]?.cost > 0.01),
@@ -253,8 +251,8 @@ function Dashboard({ data, source, onReset }) {
         tooltip: {
           callbacks: {
             label: ctx => {
-              const t = ctx.dataset.data.reduce((a, b) => a + b, 0)
-              return `${ctx.label}: ${fmt(ctx.parsed)} (${(ctx.parsed / t * 100).toFixed(1)}%)`
+              const t = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0)
+              return `${ctx.label}: ${fmt(ctx.parsed as unknown as number)} (${((ctx.parsed as unknown as number) / t * 100).toFixed(1)}%)`
             }
           }
         }
@@ -263,7 +261,7 @@ function Dashboard({ data, source, onReset }) {
   }
 
   const weeks = Object.keys(data.weekly).sort()
-  const weeklyConfig = {
+  const weeklyConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: weeks,
@@ -289,7 +287,7 @@ function Dashboard({ data, source, onReset }) {
   }
 
   const hourlyBarColors = data.hourly.map(h => h.cost > 5 ? '#ef4444cc' : h.cost > 2 ? '#f59e0bcc' : '#3b82f6cc')
-  const hourlyCostConfig = {
+  const hourlyCostConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: data.hourly.map(h => `${String(h.hour).padStart(2, '0')}:00`),
@@ -302,7 +300,7 @@ function Dashboard({ data, source, onReset }) {
     }
   }
 
-  const hourlyCallsConfig = {
+  const hourlyCallsConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: data.hourly.map(h => `${String(h.hour).padStart(2, '0')}:00`),
@@ -316,7 +314,7 @@ function Dashboard({ data, source, onReset }) {
   }
 
   const appNames = Object.keys(data.apps).sort((a, b) => data.apps[b].cost - data.apps[a].cost)
-  const appCostConfig = {
+  const appCostConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: appNames,
@@ -330,7 +328,7 @@ function Dashboard({ data, source, onReset }) {
   }
 
   const appModels = [...new Set(appNames.flatMap(a => Object.keys(data.apps[a].models)))]
-  const appModelConfig = {
+  const appModelConfig: ChartConfiguration = {
     type: 'bar',
     data: {
       labels: appNames,
@@ -353,22 +351,21 @@ function Dashboard({ data, source, onReset }) {
   // KPI calculations
   const last7Cost = data.days.slice(-7)
   const prev7Cost = data.days.slice(-14, -7)
-  const sum7 = (days) => {
+  const sum7 = (dayList: string[]) => {
     let s = 0
     for (const m of data.models) {
       for (let i = 0; i < data.days.length; i++) {
-        if (days.includes(data.days[i])) s += (data.dailyCost[m]?.[i] || 0)
+        if (dayList.includes(data.days[i])) s += (data.dailyCost[m]?.[i] || 0)
       }
     }
     return s
   }
   const last7Total = sum7(last7Cost)
   const prev7Total = sum7(prev7Cost)
-  const weekTrend = prev7Total > 0 ? ((last7Total - prev7Total) / prev7Total * 100).toFixed(0) : 0
+  const weekTrend = prev7Total > 0 ? ((last7Total - prev7Total) / prev7Total * 100).toFixed(0) : '0'
 
-  // Find top model
   const topModel = data.models[0]
-  const topPct = data.totalCost > 0 ? ((data.modelTotals[topModel]?.cost || 0) / data.totalCost * 100).toFixed(0) : 0
+  const topPct = data.totalCost > 0 ? ((data.modelTotals[topModel]?.cost || 0) / data.totalCost * 100).toFixed(0) : '0'
 
   return (
     <div className="app">
@@ -479,7 +476,7 @@ function Dashboard({ data, source, onReset }) {
               <h4>Weekly Trend</h4>
               <p>
                 {parseInt(weekTrend) < 0
-                  ? <><span className="hl-good">Spending is down {Math.abs(weekTrend)}%</span> vs the prior 7 days.</>
+                  ? <><span className="hl-good">Spending is down {Math.abs(parseInt(weekTrend))}%</span> vs the prior 7 days.</>
                   : <><span className="hl-bad">Spending is up {weekTrend}%</span> vs the prior 7 days.</>
                 }
               </p>
@@ -536,9 +533,9 @@ function Dashboard({ data, source, onReset }) {
                 options: {
                   responsive: true, maintainAspectRatio: false, indexAxis: 'y',
                   plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmt(ctx.parsed.x / 1000, 6) + '/call' } } },
-                  scales: { x: { ticks: { callback: v => '$' + (v / 1000).toFixed(4) } }, y: { grid: { display: false } } }
+                  scales: { x: { ticks: { callback: v => '$' + (Number(v) / 1000).toFixed(4) } }, y: { grid: { display: false } } }
                 }
-              }} />
+              } as ChartConfiguration} />
             </div>
             <div className="card">
               <h3>Token Volume</h3>
@@ -558,7 +555,7 @@ function Dashboard({ data, source, onReset }) {
                   plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y.toFixed(1) + 'M tokens' } } },
                   scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45 } }, y: { ticks: { callback: v => v + 'M' } } }
                 }
-              }} />
+              } as ChartConfiguration} />
             </div>
           </div>
         </>
@@ -603,11 +600,11 @@ function Dashboard({ data, source, onReset }) {
 
 // ── App Root ──
 export default function App() {
-  const [data, setData] = useState(null)
+  const [data, setData] = useState<ProcessedData | null>(null)
   const [source, setSource] = useState('')
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('or_api_key') || '')
+  const [, setApiKey] = useState(() => localStorage.getItem('or_api_key') || '')
 
-  const handleData = useCallback((rows, src) => {
+  const handleData = useCallback((rows: RawActivityRow[], src: string) => {
     const processed = processRows(rows)
     setData(processed)
     setSource(src)

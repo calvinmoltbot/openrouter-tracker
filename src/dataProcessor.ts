@@ -1,6 +1,7 @@
-// Process raw CSV rows into dashboard-ready aggregated data
+import Papa from 'papaparse'
+import type { RawActivityRow, ProcessedData } from '@/lib/types'
 
-export function modelGroup(slug) {
+export function modelGroup(slug: string): string {
   if (!slug) return 'Unknown'
   if (slug.includes('deepseek')) return 'DeepSeek v3.2'
   if (slug.includes('gemini-3-flash') || slug.includes('gemini-3.0-flash')) return 'Gemini 3 Flash'
@@ -10,26 +11,25 @@ export function modelGroup(slug) {
   if (slug.includes('claude')) return 'Claude Sonnet'
   if (slug.includes('minimax')) return 'MiniMax'
   if (slug.includes('glm')) return 'GLM'
-  // Generic fallback: take the model name portion
   const parts = slug.split('/')
   return parts.length > 1 ? parts[1].split('-').slice(0, 3).join('-') : slug
 }
 
-export function appGroup(name) {
+export function appGroup(name: string): string {
   if (!name || name.trim() === '') return 'Unlabelled'
   return name
 }
 
-export function processRows(rows) {
-  const days = new Set()
-  const models = new Set()
-  const apps = new Set()
-  const dailyCost = {}
-  const dailyCalls = {}
-  const modelTotals = {}
-  const appStats = {}
+export function processRows(rows: RawActivityRow[]): ProcessedData {
+  const days = new Set<string>()
+  const models = new Set<string>()
+  const apps = new Set<string>()
+  const dailyCost: Record<string, Record<string, number>> = {}
+  const dailyCalls: Record<string, Record<string, number>> = {}
+  const modelTotals: Record<string, { cost: number; calls: number; promptTok: number; complTok: number; avgCostPerCall: number }> = {}
+  const appStats: Record<string, { cost: number; calls: number; models: Record<string, number> }> = {}
   const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, cost: 0, calls: 0 }))
-  const weekly = {}
+  const weekly: Record<string, Record<string, number>> = {}
 
   for (const r of rows) {
     const day = (r.created_at || '').slice(0, 10)
@@ -46,47 +46,40 @@ export function processRows(rows) {
     models.add(mg)
     apps.add(ag)
 
-    // Daily cost
     if (!dailyCost[mg]) dailyCost[mg] = {}
     dailyCost[mg][day] = (dailyCost[mg][day] || 0) + cost
 
-    // Daily calls
     if (!dailyCalls[mg]) dailyCalls[mg] = {}
     dailyCalls[mg][day] = (dailyCalls[mg][day] || 0) + 1
 
-    // Model totals
-    if (!modelTotals[mg]) modelTotals[mg] = { cost: 0, calls: 0, promptTok: 0, complTok: 0 }
+    if (!modelTotals[mg]) modelTotals[mg] = { cost: 0, calls: 0, promptTok: 0, complTok: 0, avgCostPerCall: 0 }
     modelTotals[mg].cost += cost
     modelTotals[mg].calls += 1
     modelTotals[mg].promptTok += promptTok
     modelTotals[mg].complTok += complTok
 
-    // App stats
     if (!appStats[ag]) appStats[ag] = { cost: 0, calls: 0, models: {} }
     appStats[ag].cost += cost
     appStats[ag].calls += 1
     appStats[ag].models[mg] = (appStats[ag].models[mg] || 0) + cost
 
-    // Hourly
     hourly[hour].cost += cost
     hourly[hour].calls += 1
 
-    // Weekly
     try {
       const dt = new Date(day + 'T00:00:00Z')
       const startOfYear = new Date(Date.UTC(dt.getUTCFullYear(), 0, 1))
-      const dayOfYear = Math.floor((dt - startOfYear) / 86400000)
+      const dayOfYear = Math.floor((dt.getTime() - startOfYear.getTime()) / 86400000)
       const weekNum = Math.ceil((dayOfYear + startOfYear.getUTCDay() + 1) / 7)
       const wk = `W${weekNum}`
       if (!weekly[wk]) weekly[wk] = {}
       weekly[wk][mg] = (weekly[wk][mg] || 0) + cost
-    } catch (e) { /* skip */ }
+    } catch { /* skip */ }
   }
 
   const sortedDays = [...days].sort()
   const sortedModels = [...models].sort((a, b) => (modelTotals[b]?.cost || 0) - (modelTotals[a]?.cost || 0))
 
-  // Compute avgCostPerCall
   for (const m of sortedModels) {
     if (modelTotals[m]) {
       modelTotals[m].avgCostPerCall = modelTotals[m].calls > 0
@@ -119,39 +112,15 @@ export function processRows(rows) {
   }
 }
 
-function round(n, d = 4) {
+function round(n: number, d = 4): number {
   const f = Math.pow(10, d)
   return Math.round(n * f) / f
 }
 
-export function parseCSV(text) {
-  const lines = text.trim().split('\n')
-  if (lines.length < 2) return []
-  const headers = parseCSVLine(lines[0])
-  return lines.slice(1).map(line => {
-    const values = parseCSVLine(line)
-    const row = {}
-    headers.forEach((h, i) => row[h] = values[i] || '')
-    return row
-  }).filter(r => r.created_at)
-}
-
-function parseCSVLine(line) {
-  const result = []
-  let current = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i]
-    if (inQuotes) {
-      if (c === '"' && line[i + 1] === '"') { current += '"'; i++ }
-      else if (c === '"') inQuotes = false
-      else current += c
-    } else {
-      if (c === '"') inQuotes = true
-      else if (c === ',') { result.push(current); current = '' }
-      else current += c
-    }
-  }
-  result.push(current)
-  return result
+export function parseCSV(text: string): RawActivityRow[] {
+  const result = Papa.parse<RawActivityRow>(text, {
+    header: true,
+    skipEmptyLines: true,
+  })
+  return result.data.filter(r => r.created_at)
 }
