@@ -186,6 +186,37 @@ function round(n: number, d = 4): number {
   return Math.round(n * f) / f
 }
 
+export function filterRowsByRange(rows: RawActivityRow[], range: string): RawActivityRow[] {
+  if (range === 'all') return rows
+
+  const now = new Date()
+  let startDate: Date
+
+  switch (range) {
+    case '7d':
+      startDate = new Date(now.getTime() - 7 * 86400000)
+      break
+    case '14d':
+      startDate = new Date(now.getTime() - 14 * 86400000)
+      break
+    case '30d':
+      startDate = new Date(now.getTime() - 30 * 86400000)
+      break
+    case 'month': {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+      break
+    }
+    case '90d':
+      startDate = new Date(now.getTime() - 90 * 86400000)
+      break
+    default:
+      return rows
+  }
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  return rows.filter(r => (r.created_at || '').slice(0, 10) >= startStr)
+}
+
 export function parseCSV(text: string): RawActivityRow[] {
   const result = Papa.parse<RawActivityRow>(text, {
     header: true,

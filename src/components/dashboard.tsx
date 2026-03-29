@@ -4,6 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
 import { DashboardHeader } from '@/components/dashboard-header'
+import { DateRangePills } from '@/components/date-range-pills'
 import { BudgetBar } from '@/components/budget-bar'
 import { KpiRow } from '@/components/kpi-row'
 import { TabOverview } from '@/components/tab-overview'
@@ -22,10 +23,12 @@ interface DashboardProps {
   data: ProcessedData
   source: string
   keys: ApiKey[]
+  range: string
+  onRangeChange: (range: string) => void
   onReset: () => void
 }
 
-export function Dashboard({ data, source, keys, onReset }: DashboardProps) {
+export function Dashboard({ data, source, keys, range, onRangeChange, onReset }: DashboardProps) {
   const [budget, setBudget] = useState(() => {
     const saved = localStorage.getItem('or_budget')
     return saved ? parseFloat(saved) : 50
@@ -96,6 +99,7 @@ export function Dashboard({ data, source, keys, onReset }: DashboardProps) {
         onReset={onReset}
       />
 
+      <DateRangePills range={range} onRangeChange={onRangeChange} />
       <BudgetBar spent={data.totalCost} budget={budget} onChange={setBudget} />
 
       {topModel && data.modelTotals[topModel]?.cost > data.totalCost * 0.5 && (
