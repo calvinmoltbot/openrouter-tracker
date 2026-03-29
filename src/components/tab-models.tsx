@@ -11,6 +11,8 @@ interface TabModelsProps {
 }
 
 export function TabModels({ data, colors }: TabModelsProps) {
+  const hasLog = data.hasLogData
+
   return (
     <>
       <Card className="mb-4">
@@ -26,6 +28,9 @@ export function TabModels({ data, colors }: TabModelsProps) {
                 <TableHead>Calls</TableHead>
                 <TableHead>Avg $/call</TableHead>
                 <TableHead>Prompt Tokens</TableHead>
+                {hasLog && <TableHead>Cache Saved</TableHead>}
+                {hasLog && <TableHead>Avg Latency</TableHead>}
+                {hasLog && <TableHead>Avg TTFT</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -41,6 +46,9 @@ export function TabModels({ data, colors }: TabModelsProps) {
                     <TableCell>{t.calls.toLocaleString()}</TableCell>
                     <TableCell>{fmt(t.avgCostPerCall, 6)}</TableCell>
                     <TableCell>{(t.promptTok / 1e6).toFixed(1)}M</TableCell>
+                    {hasLog && <TableCell className="text-emerald-600">{t.cacheSavings > 0 ? fmt(t.cacheSavings) : '—'}</TableCell>}
+                    {hasLog && <TableCell>{t.latencyCount > 0 ? `${(t.avgLatencyMs / 1000).toFixed(1)}s` : '—'}</TableCell>}
+                    {hasLog && <TableCell>{t.latencyCount > 0 ? `${(t.avgTtftMs / 1000).toFixed(1)}s` : '—'}</TableCell>}
                   </TableRow>
                 )
               })}

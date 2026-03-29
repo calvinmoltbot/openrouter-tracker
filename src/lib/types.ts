@@ -6,6 +6,14 @@ export interface RawActivityRow {
   tokens_prompt: string
   tokens_completion: string
   requests: string
+  // Logs CSV extras (optional — only present in Logs export)
+  tokens_reasoning?: string
+  tokens_cached?: string
+  cost_cache?: string
+  generation_time_ms?: string
+  time_to_first_token_ms?: string
+  provider_name?: string
+  api_key_name?: string
 }
 
 export interface ApiActivityRow {
@@ -26,6 +34,12 @@ export interface ModelTotals {
   promptTok: number
   complTok: number
   avgCostPerCall: number
+  reasoningTok: number
+  cachedTok: number
+  cacheSavings: number
+  avgLatencyMs: number
+  avgTtftMs: number
+  latencyCount: number
 }
 
 export interface AppStats {
@@ -55,6 +69,11 @@ export interface ApiKey {
   updated_at: string | null
 }
 
+export interface ProviderStats {
+  cost: number
+  calls: number
+}
+
 export interface ProcessedData {
   days: string[]
   models: string[]
@@ -62,9 +81,14 @@ export interface ProcessedData {
   dailyCalls: Record<string, number[]>
   modelTotals: Record<string, ModelTotals>
   apps: Record<string, AppStats>
+  providers: Record<string, ProviderStats>
   hourly: HourlyBucket[]
   weekly: Record<string, Record<string, number>>
   totalCost: number
   totalCalls: number
+  totalCacheSavings: number
+  totalReasoningTok: number
+  totalCachedTok: number
+  hasLogData: boolean
   dateRange: string
 }

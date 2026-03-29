@@ -45,13 +45,25 @@ export function KpiRow({ data, last7Total, weekTrend, topModel, topPct }: KpiRow
           </div>
         </CardContent>
       </Card>
-      <Card className="border-l-4 border-l-emerald-500">
-        <CardContent>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Models</div>
-          <div className="text-2xl font-bold">{data.models.length}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{Object.keys(data.apps).length} apps</div>
-        </CardContent>
-      </Card>
+      {data.hasLogData && data.totalCacheSavings > 0 ? (
+        <Card className="border-l-4 border-l-emerald-500">
+          <CardContent>
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Cache Savings</div>
+            <div className="text-2xl font-bold">{fmt(data.totalCacheSavings)}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">
+              {(data.totalCachedTok / 1e6).toFixed(1)}M tokens cached
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-l-4 border-l-emerald-500">
+          <CardContent>
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Models</div>
+            <div className="text-2xl font-bold">{data.models.length}</div>
+            <div className="text-xs text-muted-foreground mt-0.5">{Object.keys(data.apps).length} apps</div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

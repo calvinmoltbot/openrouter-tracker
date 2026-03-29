@@ -38,10 +38,12 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
   const apps = new Set<string>()
   const dailyCost: Record<string, Record<string, number>> = {}
   const dailyCalls: Record<string, Record<string, number>> = {}
-  const modelTotals: Record<string, { cost: number; calls: number; promptTok: number; complTok: number; avgCostPerCall: number }> = {}
+  const modelTotals: Record<string, { cost: number; calls: number; promptTok: number; complTok: number; avgCostPerCall: number; reasoningTok: number; cachedTok: number; cacheSavings: number; avgLatencyMs: number; avgTtftMs: number; latencyCount: number; _latencySum: number; _ttftSum: number }> = {}
   const appStats: Record<string, { cost: number; calls: number; models: Record<string, number> }> = {}
+  const providerStats: Record<string, { cost: number; calls: number }> = {}
   const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, cost: 0, calls: 0 }))
   const weekly: Record<string, Record<string, number>> = {}
+  let hasLogData = false
 
   for (const r of rows) {
     const day = (r.created_at || '').slice(0, 10)
@@ -53,7 +55,15 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     const promptTok = parseInt(r.tokens_prompt) || 0
     const complTok = parseInt(r.tokens_completion) || 0
     const reqCount = parseInt(r.requests) || 1
+    const reasoningTok = parseInt(r.tokens_reasoning || '') || 0
+    const cachedTok = parseInt(r.tokens_cached || '') || 0
+    const cacheSavings = Math.abs(parseFloat(r.cost_cache || '') || 0)
+    const latencyMs = parseFloat(r.generation_time_ms || '') || 0
+    const ttftMs = parseFloat(r.time_to_first_token_ms || '') || 0
+    const provider = r.provider_name || ''
     const hour = parseInt((r.created_at || '').slice(11, 13)) || 0
+
+    if (r.tokens_reasoning !== undefined || r.generation_time_ms !== undefined) hasLogData = true
 
     days.add(day)
     models.add(mg)
@@ -65,11 +75,25 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     if (!dailyCalls[mg]) dailyCalls[mg] = {}
     dailyCalls[mg][day] = (dailyCalls[mg][day] || 0) + reqCount
 
-    if (!modelTotals[mg]) modelTotals[mg] = { cost: 0, calls: 0, promptTok: 0, complTok: 0, avgCostPerCall: 0 }
+    if (!modelTotals[mg]) modelTotals[mg] = { cost: 0, calls: 0, promptTok: 0, complTok: 0, avgCostPerCall: 0, reasoningTok: 0, cachedTok: 0, cacheSavings: 0, avgLatencyMs: 0, avgTtftMs: 0, latencyCount: 0, _latencySum: 0, _ttftSum: 0 }
     modelTotals[mg].cost += cost
     modelTotals[mg].calls += reqCount
     modelTotals[mg].promptTok += promptTok
     modelTotals[mg].complTok += complTok
+    modelTotals[mg].reasoningTok += reasoningTok
+    modelTotals[mg].cachedTok += cachedTok
+    modelTotals[mg].cacheSavings += cacheSavings
+    if (latencyMs > 0) {
+      modelTotals[mg]._latencySum += latencyMs
+      modelTotals[mg]._ttftSum += ttftMs
+      modelTotals[mg].latencyCount += 1
+    }
+
+    if (provider) {
+      if (!providerStats[provider]) providerStats[provider] = { cost: 0, calls: 0 }
+      providerStats[provider].cost += cost
+      providerStats[provider].calls += reqCount
+    }
 
     if (!appStats[ag]) appStats[ag] = { cost: 0, calls: 0, models: {} }
     appStats[ag].cost += cost
@@ -98,6 +122,12 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
       modelTotals[m].avgCostPerCall = modelTotals[m].calls > 0
         ? modelTotals[m].cost / modelTotals[m].calls
         : 0
+      modelTotals[m].avgLatencyMs = modelTotals[m].latencyCount > 0
+        ? modelTotals[m]._latencySum / modelTotals[m].latencyCount
+        : 0
+      modelTotals[m].avgTtftMs = modelTotals[m].latencyCount > 0
+        ? modelTotals[m]._ttftSum / modelTotals[m].latencyCount
+        : 0
     }
   }
 
@@ -111,16 +141,25 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     dailyCalls: Object.fromEntries(sortedModels.map(m => [m, sortedDays.map(d => dailyCalls[m]?.[d] || 0)])),
     modelTotals: Object.fromEntries(Object.entries(modelTotals).map(([k, v]) => [k, {
       cost: round(v.cost), calls: v.calls, promptTok: v.promptTok, complTok: v.complTok,
-      avgCostPerCall: round(v.avgCostPerCall, 6)
+      avgCostPerCall: round(v.avgCostPerCall, 6),
+      reasoningTok: v.reasoningTok, cachedTok: v.cachedTok, cacheSavings: round(v.cacheSavings),
+      avgLatencyMs: round(v.avgLatencyMs, 0), avgTtftMs: round(v.avgTtftMs, 0), latencyCount: v.latencyCount,
     }])),
     apps: Object.fromEntries(Object.entries(appStats).map(([k, v]) => [k, {
       cost: round(v.cost), calls: v.calls,
       models: Object.fromEntries(Object.entries(v.models).map(([m, c]) => [m, round(c)]))
     }])),
+    providers: Object.fromEntries(Object.entries(providerStats).map(([k, v]) => [k, {
+      cost: round(v.cost), calls: v.calls,
+    }])),
     hourly: hourly.map(h => ({ ...h, cost: round(h.cost) })),
     weekly,
     totalCost: round(totalCost),
     totalCalls,
+    totalCacheSavings: round(Object.values(modelTotals).reduce((s, v) => s + v.cacheSavings, 0)),
+    totalReasoningTok: Object.values(modelTotals).reduce((s, v) => s + v.reasoningTok, 0),
+    totalCachedTok: Object.values(modelTotals).reduce((s, v) => s + v.cachedTok, 0),
+    hasLogData,
     dateRange: sortedDays.length > 0 ? `${sortedDays[0]} to ${sortedDays[sortedDays.length - 1]}` : 'No data'
   }
 }
