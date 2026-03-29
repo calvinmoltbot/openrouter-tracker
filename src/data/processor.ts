@@ -217,6 +217,49 @@ export function filterRowsByRange(rows: RawActivityRow[], range: string): RawAct
   return rows.filter(r => (r.created_at || '').slice(0, 10) >= startStr)
 }
 
+export function filterRowsByPreviousRange(rows: RawActivityRow[], range: string): RawActivityRow[] {
+  if (range === 'all') return []
+
+  const now = new Date()
+  let startDate: Date
+  let endDate: Date
+
+  switch (range) {
+    case '7d':
+      endDate = new Date(now.getTime() - 7 * 86400000)
+      startDate = new Date(now.getTime() - 14 * 86400000)
+      break
+    case '14d':
+      endDate = new Date(now.getTime() - 14 * 86400000)
+      startDate = new Date(now.getTime() - 28 * 86400000)
+      break
+    case '30d':
+      endDate = new Date(now.getTime() - 30 * 86400000)
+      startDate = new Date(now.getTime() - 60 * 86400000)
+      break
+    case 'month': {
+      const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+      const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      startDate = prevMonthStart
+      endDate = thisMonthStart
+      break
+    }
+    case '90d':
+      endDate = new Date(now.getTime() - 90 * 86400000)
+      startDate = new Date(now.getTime() - 180 * 86400000)
+      break
+    default:
+      return []
+  }
+
+  const startStr = startDate.toISOString().slice(0, 10)
+  const endStr = endDate.toISOString().slice(0, 10)
+  return rows.filter(r => {
+    const day = (r.created_at || '').slice(0, 10)
+    return day >= startStr && day < endStr
+  })
+}
+
 export function parseCSV(text: string): RawActivityRow[] {
   const result = Papa.parse<RawActivityRow>(text, {
     header: true,

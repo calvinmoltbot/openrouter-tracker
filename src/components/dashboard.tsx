@@ -27,6 +27,7 @@ import {
   sendTelegramAlert,
   type BudgetPeriod,
 } from '@/lib/telegram'
+import { RecommendationsPanel } from '@/components/recommendations-panel'
 import type { ProcessedData, ApiKey } from '@/lib/types'
 
 Chart.register(...registerables)
@@ -34,11 +35,15 @@ Chart.register(...registerables)
 interface DashboardProps {
   data: ProcessedData
   fullData: ProcessedData | null
+  prevData: ProcessedData | null
   source: string
   keys: ApiKey[]
   range: string
   onRangeChange: (range: string) => void
   onReset: () => void
+  cacheTimestamp: number | null
+  compare: boolean
+  onCompareToggle: () => void
 }
 
 /** Number of days in the current budget period and days elapsed so far */
@@ -53,7 +58,7 @@ function getPeriodDays(period: BudgetPeriod): { daysInPeriod: number; daysElapse
   return { daysInPeriod: daysInMonth, daysElapsed: now.getDate() }
 }
 
-export function Dashboard({ data, fullData, source, keys, range, onRangeChange, onReset }: DashboardProps) {
+export function Dashboard({ data, fullData, prevData, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle }: DashboardProps) {
   const [period, setPeriod] = useState<BudgetPeriod>(() => getBudgetPeriod())
   const [budget, setBudget] = useState(() => getBudgetForPeriod(getBudgetPeriod()))
   const [showSettings, setShowSettings] = useState(false)
@@ -153,6 +158,7 @@ export function Dashboard({ data, fullData, source, keys, range, onRangeChange, 
         onExport={exportReport}
         onReset={onReset}
         onSettingsClick={() => setShowSettings(true)}
+        cacheTimestamp={cacheTimestamp}
       />
 
       <BudgetAlertBanner
@@ -162,7 +168,7 @@ export function Dashboard({ data, fullData, source, keys, range, onRangeChange, 
         projectedOverspend={projectedOverspend !== null && projectedOverspend > 0 ? projectedOverspend : null}
       />
 
-      <DateRangePills range={range} onRangeChange={onRangeChange} />
+      <DateRangePills range={range} onRangeChange={onRangeChange} compare={compare} onCompareToggle={onCompareToggle} />
       <ExecutiveSummary data={data} fullData={fullData} budget={budget} />
       <BudgetBar
         spent={data.totalCost}
@@ -187,6 +193,8 @@ export function Dashboard({ data, fullData, source, keys, range, onRangeChange, 
 
       <KpiRow data={data} last7Total={last7Total} weekTrend={weekTrend} topModel={topModel} topPct={topPct} />
 
+      <RecommendationsPanel data={data} budget={budget} />
+
       <Tabs defaultValue="overview">
         <TabsList className="mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -196,7 +204,7 @@ export function Dashboard({ data, fullData, source, keys, range, onRangeChange, 
           <TabsTrigger value="keys">Keys{keys.length > 0 ? ` (${keys.length})` : ''}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="animate-in fade-in duration-300">
-          <TabOverview data={data} colors={colors} topModel={topModel} weekTrend={weekTrend} darkMode={darkMode} />
+          <TabOverview data={data} prevData={prevData} colors={colors} topModel={topModel} weekTrend={weekTrend} darkMode={darkMode} compare={compare} />
         </TabsContent>
         <TabsContent value="models" className="animate-in fade-in duration-300">
           <TabModels data={data} colors={colors} darkMode={darkMode} />
