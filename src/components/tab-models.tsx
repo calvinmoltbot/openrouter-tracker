@@ -1,7 +1,7 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ChartBox } from '@/components/chart-box'
-import { buildCostPerCallConfig, buildTokenVolumeConfig } from '@/lib/chart-configs'
+import { buildCostPerCallConfig, buildTokenVolumeConfig, buildEfficiencyScatterConfig } from '@/lib/chart-configs'
 import { fmt } from '@/lib/format'
 import type { ProcessedData } from '@/lib/types'
 
@@ -74,6 +74,17 @@ export function TabModels({ data, colors, darkMode }: TabModelsProps) {
           </CardHeader>
           <CardContent>
             <ChartBox id="tokens" config={buildTokenVolumeConfig(data, colors, darkMode)} />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 gap-4 mb-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Model Efficiency</CardTitle>
+            <CardDescription>Cost vs tokens per call — bubble size = call volume</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartBox id="efficiency" config={buildEfficiencyScatterConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
       </div>

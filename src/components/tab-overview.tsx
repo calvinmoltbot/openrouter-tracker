@@ -1,5 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { ChartBox } from '@/components/chart-box'
+import { CostHeatmap } from '@/components/cost-heatmap'
 import { InsightsPanel } from '@/components/insights-panel'
 import { buildDailyCostConfig, buildPieConfig, buildWeeklyConfig } from '@/lib/chart-configs'
 import type { ProcessedData } from '@/lib/types'
@@ -45,6 +46,9 @@ export function TabOverview({ data, colors, topModel, weekTrend, darkMode }: Tab
             <ChartBox id="weekly" config={buildWeeklyConfig(data, colors, darkMode)} />
           </CardContent>
         </Card>
+      </div>
+      <div className="mb-4">
+        <CostHeatmap data={data} darkMode={darkMode} />
       </div>
       <InsightsPanel data={data} topModel={topModel} weekTrend={weekTrend} />
     </>

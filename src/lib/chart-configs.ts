@@ -19,17 +19,41 @@ function themeColors(darkMode: boolean) {
 
 export function buildDailyCostConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
   const tc = themeColors(darkMode)
+
+  const dailyTotals = data.days.map((_, i) =>
+    data.models.reduce((sum, m) => sum + (data.dailyCost[m]?.[i] || 0), 0)
+  )
+  const cumulativeData = dailyTotals.reduce<number[]>((acc, val) => {
+    acc.push((acc.length > 0 ? acc[acc.length - 1] : 0) + val)
+    return acc
+  }, [])
+
   return {
     type: 'bar',
     data: {
       labels: data.days.map(d => d.slice(5)),
-      datasets: data.models.map(m => ({
-        label: m,
-        data: data.dailyCost[m],
-        backgroundColor: colors[m] + '99',
-        borderColor: colors[m],
-        borderWidth: 1,
-      }))
+      datasets: [
+        ...data.models.map(m => ({
+          label: m,
+          data: data.dailyCost[m],
+          backgroundColor: colors[m] + '99',
+          borderColor: colors[m],
+          borderWidth: 1,
+        })),
+        {
+          label: 'Cumulative',
+          type: 'line' as const,
+          data: cumulativeData,
+          borderColor: darkMode ? '#f59e0b' : '#d97706',
+          borderWidth: 2,
+          borderDash: [4, 4],
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          fill: false,
+          yAxisID: 'y1',
+          order: 0,
+        },
+      ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -40,14 +64,25 @@ export function buildDailyCostConfig(data: ProcessedData, colors: Colors, darkMo
           titleColor: tc.tooltipTitleColor,
           bodyColor: tc.tooltipBodyColor,
           callbacks: {
-            label: ctx => `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 4)}`,
-            footer: items => `Total: ${fmt(items.reduce((s, i) => s + i.parsed.y, 0), 4)}`
+            label: ctx => {
+              if (ctx.dataset.label === 'Cumulative') return `Cumulative: ${fmt(ctx.parsed.y, 4)}`
+              return `${ctx.dataset.label}: ${fmt(ctx.parsed.y, 4)}`
+            },
+            footer: items => {
+              const barItems = items.filter(i => i.dataset.label !== 'Cumulative')
+              return `Total: ${fmt(barItems.reduce((s, i) => s + i.parsed.y, 0), 4)}`
+            }
           }
         }
       },
       scales: {
         x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, color: tc.tickColor } },
-        y: { stacked: true, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } }
+        y: { stacked: true, grid: { color: tc.gridColor }, ticks: { callback: v => '$' + v, color: tc.tickColor } },
+        y1: {
+          position: 'right' as const,
+          grid: { drawOnChartArea: false },
+          ticks: { callback: v => '$' + v, color: darkMode ? '#f59e0b' : '#d97706' },
+        }
       }
     }
   }
@@ -293,6 +328,59 @@ export function buildTokenVolumeConfig(data: ProcessedData, colors: Colors, dark
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 10 }, maxRotation: 45, color: tc.tickColor } },
         y: { grid: { color: tc.gridColor }, ticks: { callback: v => v + 'M', color: tc.tickColor } }
+      }
+    }
+  }
+}
+
+export function buildEfficiencyScatterConfig(data: ProcessedData, colors: Colors, darkMode: boolean): ChartConfiguration {
+  const tc = themeColors(darkMode)
+  return {
+    type: 'bubble',
+    data: {
+      datasets: data.models
+        .filter(m => data.modelTotals[m]?.calls > 0)
+        .map(m => {
+          const t = data.modelTotals[m]
+          const avgTokens = (t.promptTok + t.complTok) / t.calls
+          const radius = Math.max(5, Math.min(30, Math.sqrt(t.calls) * 2))
+          return {
+            label: m,
+            data: [{ x: avgTokens, y: t.avgCostPerCall, r: radius }],
+            backgroundColor: colors[m] + '99',
+            borderColor: colors[m],
+            borderWidth: 1,
+          }
+        })
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, font: { size: 10 }, color: tc.legendColor } },
+        tooltip: {
+          backgroundColor: tc.tooltipBg,
+          titleColor: tc.tooltipTitleColor,
+          bodyColor: tc.tooltipBodyColor,
+          callbacks: {
+            label: ctx => {
+              const ds = ctx.dataset
+              const raw = ds.data[0] as { x: number; y: number }
+              return `${ds.label}: ${fmt(raw.y, 6)}/call, ${Math.round(raw.x).toLocaleString()} tok/call`
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Avg Tokens / Call', color: tc.tickColor },
+          grid: { color: tc.gridColor },
+          ticks: { color: tc.tickColor },
+        },
+        y: {
+          title: { display: true, text: 'Avg Cost / Call ($)', color: tc.tickColor },
+          grid: { color: tc.gridColor },
+          ticks: { callback: v => '$' + Number(v).toFixed(4), color: tc.tickColor },
+        }
       }
     }
   }

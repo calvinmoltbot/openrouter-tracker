@@ -21,6 +21,11 @@ export default function App() {
     return processRows(filtered)
   }, [rawRows, range])
 
+  const fullData = useMemo(() => {
+    if (!rawRows) return null
+    return processRows(rawRows)
+  }, [rawRows])
+
   const handleData = useCallback((rows: RawActivityRow[], src: string, apiKeys?: ApiKey[]) => {
     setRawRows(rows)
     setSource(src)
@@ -37,5 +42,5 @@ export default function App() {
     return <SetupScreen onData={handleData} onApiKey={setApiKey} />
   }
 
-  return <Dashboard data={data} source={source} keys={keys} range={range} onRangeChange={setRange} onReset={handleReset} />
+  return <Dashboard data={data} fullData={fullData} source={source} keys={keys} range={range} onRangeChange={setRange} onReset={handleReset} />
 }

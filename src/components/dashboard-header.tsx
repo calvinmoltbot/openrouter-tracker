@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Download, RefreshCw, Sun, Moon } from 'lucide-react'
+import { Download, RefreshCw, Sun, Moon, Settings } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 
 interface DashboardHeaderProps {
@@ -8,9 +8,10 @@ interface DashboardHeaderProps {
   source: string
   onExport: () => void
   onReset: () => void
+  onSettingsClick?: () => void
 }
 
-export function DashboardHeader({ dateRange, totalCalls, source, onExport, onReset }: DashboardHeaderProps) {
+export function DashboardHeader({ dateRange, totalCalls, source, onExport, onReset, onSettingsClick }: DashboardHeaderProps) {
   const { darkMode, toggleTheme } = useTheme()
 
   return (
@@ -28,6 +29,11 @@ export function DashboardHeader({ dateRange, totalCalls, source, onExport, onRes
           <RefreshCw className="size-3.5" />
           Change Data Source
         </Button>
+        {onSettingsClick && (
+          <Button variant="outline" size="icon" onClick={onSettingsClick} className="border-white/15 bg-white/8 text-gray-50 hover:bg-white/18 hover:text-gray-50 size-8">
+            <Settings className="size-3.5" />
+          </Button>
+        )}
         <Button variant="outline" size="icon" onClick={toggleTheme} className="border-white/15 bg-white/8 text-gray-50 hover:bg-white/18 hover:text-gray-50 size-8">
           {darkMode ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
         </Button>
