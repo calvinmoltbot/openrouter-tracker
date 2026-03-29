@@ -1,0 +1,23 @@
+{
+  "$schema": "launcher-meta/v1",
+  "name": "OpenRouter Tracker",
+  "description": "API spend analytics dashboard",
+  "icon": "BarChart3",
+  "color": "indigo",
+  "category": "data",
+  "pinned": false,
+  "longDescription": "Dashboard for monitoring OpenRouter API spending across models and apps. Visualizes daily, weekly, and hourly cost trends with model breakdowns, budget tracking, and exportable reports. Supports both API key and CSV data sources.",
+  "features": [
+    "Daily/weekly/hourly cost charts by model",
+    "Model cost-per-call and token volume analysis",
+    "Per-app spend breakdown and model matrix",
+    "Monthly budget tracker with progress bar",
+    "Markdown report export",
+    "CSV upload or live API key connection"
+  ],
+  "techStack": ["Vite", "React 19", "TypeScript", "Tailwind CSS 4", "shadcn/ui", "Chart.js", "papaparse"],
+  "screenshots": [],
+  "repo": "calvinmoltbot/openrouter-tracker",
+  "envVars": [],
+  "dependencies": ["Vercel", "OpenRouter API"]
+}
