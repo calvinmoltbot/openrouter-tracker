@@ -5,6 +5,19 @@ export interface RawActivityRow {
   cost_total: string
   tokens_prompt: string
   tokens_completion: string
+  requests: string
+}
+
+export interface ApiActivityRow {
+  date: string
+  model_permaslug: string
+  model: string
+  usage: number
+  prompt_tokens: number
+  completion_tokens: number
+  requests: number
+  provider_name: string
+  endpoint_id: string
 }
 
 export interface ModelTotals {

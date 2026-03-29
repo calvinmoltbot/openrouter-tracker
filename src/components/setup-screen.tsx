@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
-import { parseCSV } from '@/data/processor'
-import type { RawActivityRow } from '@/lib/types'
+import { parseCSV, normalizeApiRows } from '@/data/processor'
+import type { RawActivityRow, ApiActivityRow } from '@/lib/types'
 
 interface SetupScreenProps {
   onData: (rows: RawActivityRow[], source: string) => void
@@ -32,13 +32,14 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
         throw new Error(`API returned ${res.status}: ${body.slice(0, 200)}`)
       }
       const json = await res.json()
-      let rows: RawActivityRow[] = []
-      if (Array.isArray(json)) rows = json
-      else if (json.data && Array.isArray(json.data)) rows = json.data
-      else if (json.activity) rows = json.activity
-      else rows = [json]
+      let apiRows: ApiActivityRow[] = []
+      if (Array.isArray(json)) apiRows = json
+      else if (json.data && Array.isArray(json.data)) apiRows = json.data
+      else if (json.activity) apiRows = json.activity
+      else apiRows = [json]
 
-      if (rows.length === 0) throw new Error('No activity data returned')
+      if (apiRows.length === 0) throw new Error('No activity data returned')
+      const rows = normalizeApiRows(apiRows)
 
       localStorage.setItem('or_api_key', key.trim())
       onApiKey(key.trim())

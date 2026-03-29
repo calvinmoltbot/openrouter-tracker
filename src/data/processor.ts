@@ -1,5 +1,17 @@
 import Papa from 'papaparse'
-import type { RawActivityRow, ProcessedData } from '@/lib/types'
+import type { RawActivityRow, ApiActivityRow, ProcessedData } from '@/lib/types'
+
+export function normalizeApiRows(rows: ApiActivityRow[]): RawActivityRow[] {
+  return rows.map(r => ({
+    created_at: r.date || '',
+    model_permaslug: r.model_permaslug || r.model || '',
+    app_name: '',
+    cost_total: String(r.usage ?? 0),
+    tokens_prompt: String(r.prompt_tokens ?? 0),
+    tokens_completion: String(r.completion_tokens ?? 0),
+    requests: String(r.requests ?? 1),
+  }))
+}
 
 export function modelGroup(slug: string): string {
   if (!slug) return 'Unknown'
@@ -40,6 +52,7 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     const cost = parseFloat(r.cost_total) || 0
     const promptTok = parseInt(r.tokens_prompt) || 0
     const complTok = parseInt(r.tokens_completion) || 0
+    const reqCount = parseInt(r.requests) || 1
     const hour = parseInt((r.created_at || '').slice(11, 13)) || 0
 
     days.add(day)
@@ -50,21 +63,21 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     dailyCost[mg][day] = (dailyCost[mg][day] || 0) + cost
 
     if (!dailyCalls[mg]) dailyCalls[mg] = {}
-    dailyCalls[mg][day] = (dailyCalls[mg][day] || 0) + 1
+    dailyCalls[mg][day] = (dailyCalls[mg][day] || 0) + reqCount
 
     if (!modelTotals[mg]) modelTotals[mg] = { cost: 0, calls: 0, promptTok: 0, complTok: 0, avgCostPerCall: 0 }
     modelTotals[mg].cost += cost
-    modelTotals[mg].calls += 1
+    modelTotals[mg].calls += reqCount
     modelTotals[mg].promptTok += promptTok
     modelTotals[mg].complTok += complTok
 
     if (!appStats[ag]) appStats[ag] = { cost: 0, calls: 0, models: {} }
     appStats[ag].cost += cost
-    appStats[ag].calls += 1
+    appStats[ag].calls += reqCount
     appStats[ag].models[mg] = (appStats[ag].models[mg] || 0) + cost
 
     hourly[hour].cost += cost
-    hourly[hour].calls += 1
+    hourly[hour].calls += reqCount
 
     try {
       const dt = new Date(day + 'T00:00:00Z')
@@ -89,7 +102,7 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
   }
 
   const totalCost = Object.values(modelTotals).reduce((s, v) => s + v.cost, 0)
-  const totalCalls = rows.length
+  const totalCalls = Object.values(modelTotals).reduce((s, v) => s + v.calls, 0)
 
   return {
     days: sortedDays,
