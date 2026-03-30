@@ -1,7 +1,8 @@
+'use client'
+
 import { useState, useRef } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Sun, Moon } from 'lucide-react'
 import { parseCSV, normalizeApiRows } from '@/data/processor'
@@ -10,11 +11,9 @@ import type { RawActivityRow, ApiActivityRow, ApiKey } from '@/lib/types'
 
 interface SetupScreenProps {
   onData: (rows: RawActivityRow[], source: string, keys?: ApiKey[]) => void
-  onApiKey: (key: string) => void
 }
 
-export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
-  const [key, setKey] = useState('')
+export function SetupScreen({ onData }: SetupScreenProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [dragActive, setDragActive] = useState(false)
@@ -22,16 +21,13 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
   const { darkMode, toggleTheme } = useTheme()
 
   const fetchFromApi = async () => {
-    if (!key.trim()) return setError('Please enter your provisioning API key')
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('https://openrouter.ai/api/v1/activity', {
-        headers: { 'Authorization': `Bearer ${key.trim()}` }
-      })
+      const res = await fetch('/api/activity')
       if (!res.ok) {
-        const body = await res.text()
-        throw new Error(`API returned ${res.status}: ${body.slice(0, 200)}`)
+        const body = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+        throw new Error(body.error || `API returned ${res.status}`)
       }
       const json = await res.json()
       let apiRows: ApiActivityRow[] = []
@@ -43,20 +39,16 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
       if (apiRows.length === 0) throw new Error('No activity data returned')
       const rows = normalizeApiRows(apiRows)
 
-      // Fetch API keys in parallel (best-effort)
+      // Fetch API keys (best-effort)
       let keys: ApiKey[] = []
       try {
-        const keysRes = await fetch('https://openrouter.ai/api/v1/keys', {
-          headers: { 'Authorization': `Bearer ${key.trim()}` }
-        })
+        const keysRes = await fetch('/api/keys')
         if (keysRes.ok) {
           const keysJson = await keysRes.json()
           keys = Array.isArray(keysJson) ? keysJson : (keysJson.data ?? [])
         }
       } catch { /* keys fetch is best-effort */ }
 
-      localStorage.setItem('or_api_key', key.trim())
-      onApiKey(key.trim())
       onData(rows, 'api', keys)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
@@ -109,17 +101,9 @@ export function SetupScreen({ onData, onApiKey }: SetupScreenProps) {
 
       <Card className="text-left mb-4">
         <CardContent className="space-y-3">
-          <h3 className="text-[15px] font-semibold">Option 1: Connect via API</h3>
-          <label className="block text-[13px] text-muted-foreground">OpenRouter Provisioning API Key</label>
-          <Input
-            type="password"
-            placeholder="sk-or-..."
-            value={key}
-            onChange={e => setKey(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchFromApi()}
-          />
+          <h3 className="text-[15px] font-semibold">Option 1: Fetch from API</h3>
           <p className="text-xs text-muted-foreground">
-            Get this from <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener" className="text-blue-500 hover:underline">OpenRouter Settings &rarr; Keys</a>. Needs a provisioning key, not a regular API key.
+            Fetches activity data using the provisioning key configured on the server.
           </p>
           <Button className="w-full" onClick={fetchFromApi} disabled={loading}>
             {loading ? 'Connecting...' : 'Fetch Activity Data'}

@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { Download, RefreshCw, Sun, Moon, Settings } from 'lucide-react'
 import { useTheme } from '@/lib/theme'

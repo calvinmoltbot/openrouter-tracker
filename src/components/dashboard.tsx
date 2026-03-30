@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Chart, registerables } from 'chart.js'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'

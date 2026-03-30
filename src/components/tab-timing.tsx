@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { ChartBox } from '@/components/chart-box'
 import { buildHourlyCostConfig, buildHourlyCallsConfig } from '@/lib/chart-configs'

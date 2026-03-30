@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { SetupScreen } from '@/components/setup-screen'
 import { Dashboard } from '@/components/dashboard'
@@ -9,8 +11,12 @@ export default function App() {
   const [rawRows, setRawRows] = useState<RawActivityRow[] | null>(null)
   const [source, setSource] = useState('')
   const [keys, setKeys] = useState<ApiKey[]>([])
-  const [range, setRange] = useState<string>(() => localStorage.getItem('or_range') || 'month')
-  const [, setApiKey] = useState(() => localStorage.getItem('or_api_key') || '')
+  const [range, setRange] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('or_range') || 'month'
+    }
+    return 'month'
+  })
   const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [compare, setCompare] = useState(false)
@@ -72,7 +78,7 @@ export default function App() {
   }
 
   if (!data) {
-    return <SetupScreen onData={handleData} onApiKey={setApiKey} />
+    return <SetupScreen onData={handleData} />
   }
 
   return (

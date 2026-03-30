@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo } from 'react'
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { useCountUp } from '@/lib/hooks'

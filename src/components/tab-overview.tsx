@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { ChartBox } from '@/components/chart-box'
