@@ -21,9 +21,40 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [compare, setCompare] = useState(false)
 
-  // Load cached data on mount
+  // Load data: try server DB first, fall back to client cache
   useEffect(() => {
-    getCachedData().then(cached => {
+    async function loadData() {
+      // Try fetching from server DB
+      try {
+        const res = await fetch('/api/logs')
+        if (res.ok) {
+          const json = await res.json()
+          if (json.rows && json.rows.length > 0) {
+            setRawRows(json.rows)
+            setSource('db')
+            setCacheTimestamp(Date.now())
+            // Also fetch API keys (best-effort)
+            try {
+              const keysRes = await fetch('/api/keys')
+              if (keysRes.ok) {
+                const keysJson = await keysRes.json()
+                const k = Array.isArray(keysJson) ? keysJson : (keysJson.data ?? [])
+                setKeys(k)
+                cacheData(json.rows, 'db', k)
+              } else {
+                cacheData(json.rows, 'db', [])
+              }
+            } catch {
+              cacheData(json.rows, 'db', [])
+            }
+            setLoading(false)
+            return
+          }
+        }
+      } catch { /* fall through to cache */ }
+
+      // Fall back to client-side cache
+      const cached = await getCachedData()
       if (cached) {
         setRawRows(cached.rawRows)
         setSource(cached.source)
@@ -31,7 +62,8 @@ export default function App() {
         setCacheTimestamp(cached.timestamp)
       }
       setLoading(false)
-    })
+    }
+    loadData()
   }, [])
 
   useEffect(() => {
