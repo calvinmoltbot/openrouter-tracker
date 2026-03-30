@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint src",
     "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "export-logs": "tsx scripts/export-logs.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.14",
@@ -42,7 +44,9 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^10.1.0",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "playwright": "^1.58.2",
     "tailwindcss": "^4.2.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.57.2"
   }
