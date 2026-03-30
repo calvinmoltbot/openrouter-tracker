@@ -53,13 +53,13 @@ function spanToRow(span: OtlpSpan) {
   const durationMs = endMs - startMs
 
   const model = getStr(a, 'gen_ai.response.model') || getStr(a, 'gen_ai.request.model')
-  const app = getStr(a, 'openrouter.api_key_name')
+  const app = getStr(a, 'trace.metadata.openrouter.api_key_name') || getStr(a, 'openrouter.api_key_name')
   const cost = getNum(a, 'gen_ai.usage.total_cost') || (getNum(a, 'gen_ai.usage.input_cost') + getNum(a, 'gen_ai.usage.output_cost')) || getNum(a, 'gen_ai.usage.cost')
   const tokensPrompt = getNum(a, 'gen_ai.usage.input_tokens') || getNum(a, 'gen_ai.usage.prompt_tokens')
   const tokensCompletion = getNum(a, 'gen_ai.usage.output_tokens') || getNum(a, 'gen_ai.usage.completion_tokens')
   const tokensReasoning = getNum(a, 'gen_ai.usage.output_tokens.reasoning') || null
   const tokensCached = getNum(a, 'gen_ai.usage.input_tokens.cached') || null
-  const provider = getStr(a, 'gen_ai.provider.name') || getStr(a, 'openrouter.provider_name')
+  const provider = getStr(a, 'trace.metadata.openrouter.provider_name') || getStr(a, 'gen_ai.provider.name') || getStr(a, 'openrouter.provider_name')
 
   return {
     generationId: span.traceId + '_' + span.spanId,
