@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
-import { logRows } from '@/db/schema'
+import { logRows, settings } from '@/db/schema'
 
 // No auth middleware — this endpoint is called by OpenRouter's broadcast system
 // Optionally verify with a shared secret header
@@ -119,6 +119,25 @@ export async function POST(request: NextRequest) {
     if (rows.length === 0) {
       return NextResponse.json({ stored: 0 })
     }
+
+    // Debug: store last raw span attributes for troubleshooting
+    try {
+      const firstSpan = resourceSpans[0]?.scopeSpans?.[0]?.spans?.[0]
+      if (firstSpan?.attributes) {
+        const attrKeys = firstSpan.attributes.map((a: OtlpAttribute) => ({
+          key: a.key,
+          value: a.value.stringValue ?? a.value.doubleValue ?? a.value.intValue ?? null,
+        }))
+        await db().insert(settings).values({
+          key: 'last_webhook_debug',
+          value: attrKeys,
+          updatedAt: new Date(),
+        }).onConflictDoUpdate({
+          target: settings.key,
+          set: { value: attrKeys, updatedAt: new Date() },
+        })
+      }
+    } catch { /* debug is best-effort */ }
 
     // Insert in batches
     const batchSize = 500
