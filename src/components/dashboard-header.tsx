@@ -1,7 +1,8 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Download, RefreshCw, Sun, Moon, Settings } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Download, RefreshCw, Sun, Moon, Settings, LogOut } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { formatCacheAge, isCacheStale } from '@/lib/cache'
 
@@ -17,6 +18,13 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ dateRange, totalCalls, source, onExport, onReset, onSettingsClick, cacheTimestamp }: DashboardHeaderProps) {
   const { darkMode, toggleTheme } = useTheme()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <div className="bg-gray-900 text-gray-50 px-7 py-5 rounded-xl mb-4 flex justify-between items-center flex-wrap gap-3">
@@ -47,6 +55,9 @@ export function DashboardHeader({ dateRange, totalCalls, source, onExport, onRes
         )}
         <Button variant="outline" size="icon" onClick={toggleTheme} className="border-white/15 bg-white/8 text-gray-50 hover:bg-white/18 hover:text-gray-50 size-8">
           {darkMode ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+        </Button>
+        <Button variant="outline" size="icon" onClick={handleLogout} className="border-white/15 bg-white/8 text-gray-50 hover:bg-white/18 hover:text-gray-50 size-8" title="Logout">
+          <LogOut className="size-3.5" />
         </Button>
       </div>
     </div>
