@@ -86,6 +86,7 @@ export default function App() {
       data={data}
       fullData={fullData}
       prevData={prevData}
+      rawRows={rawRows!}
       source={source}
       keys={keys}
       range={range}
