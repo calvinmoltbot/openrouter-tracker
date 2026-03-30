@@ -1,3 +1,5 @@
+'use client'
+
 import { Input } from '@/components/ui/input'
 import { fmt } from '@/lib/format'
 import { cn } from '@/lib/utils'

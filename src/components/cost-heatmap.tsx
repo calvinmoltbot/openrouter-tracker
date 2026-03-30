@@ -1,3 +1,5 @@
+'use client'
+
 import { useMemo, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { fmt } from '@/lib/format'

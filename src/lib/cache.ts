@@ -1,3 +1,5 @@
+'use client'
+
 import { get, set, del } from 'idb-keyval'
 import type { RawActivityRow, ApiKey } from '@/lib/types'
 

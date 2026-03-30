@@ -1,9 +1,12 @@
+'use client'
+
 import { useEffect, useRef, useState } from 'react'
-import { Chart, type ChartConfiguration } from 'chart.js'
+import { Chart } from 'chart.js'
 
 interface ChartBoxProps {
   id: string
-  config: ChartConfiguration
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  config: any
   height?: number
 }
 

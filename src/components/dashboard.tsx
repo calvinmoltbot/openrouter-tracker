@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import { Chart, registerables } from 'chart.js'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
@@ -27,8 +29,9 @@ import {
   sendTelegramAlert,
   type BudgetPeriod,
 } from '@/lib/telegram'
+import { TabToday } from '@/components/tab-today'
 import { RecommendationsPanel } from '@/components/recommendations-panel'
-import type { ProcessedData, ApiKey } from '@/lib/types'
+import type { ProcessedData, ApiKey, RawActivityRow } from '@/lib/types'
 
 Chart.register(...registerables)
 
@@ -36,6 +39,7 @@ interface DashboardProps {
   data: ProcessedData
   fullData: ProcessedData | null
   prevData: ProcessedData | null
+  rawRows: RawActivityRow[]
   source: string
   keys: ApiKey[]
   range: string
@@ -58,7 +62,7 @@ function getPeriodDays(period: BudgetPeriod): { daysInPeriod: number; daysElapse
   return { daysInPeriod: daysInMonth, daysElapsed: now.getDate() }
 }
 
-export function Dashboard({ data, fullData, prevData, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle }: DashboardProps) {
+export function Dashboard({ data, fullData, prevData, rawRows, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle }: DashboardProps) {
   const [period, setPeriod] = useState<BudgetPeriod>(() => getBudgetPeriod())
   const [budget, setBudget] = useState(() => getBudgetForPeriod(getBudgetPeriod()))
   const [showSettings, setShowSettings] = useState(false)
@@ -195,14 +199,18 @@ export function Dashboard({ data, fullData, prevData, source, keys, range, onRan
 
       <RecommendationsPanel data={data} budget={budget} />
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue="today">
         <TabsList className="mb-4">
+          <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="models">Models</TabsTrigger>
           <TabsTrigger value="timing">Timing</TabsTrigger>
           <TabsTrigger value="apps">Apps</TabsTrigger>
           <TabsTrigger value="keys">Keys{keys.length > 0 ? ` (${keys.length})` : ''}</TabsTrigger>
         </TabsList>
+        <TabsContent value="today" className="animate-in fade-in duration-300">
+          <TabToday rawRows={rawRows} darkMode={darkMode} dailyBudget={getBudgetForPeriod('daily')} />
+        </TabsContent>
         <TabsContent value="overview" className="animate-in fade-in duration-300">
           <TabOverview data={data} prevData={prevData} colors={colors} topModel={topModel} weekTrend={weekTrend} darkMode={darkMode} compare={compare} />
         </TabsContent>

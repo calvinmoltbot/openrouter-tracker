@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent } from '@/components/ui/card'
 import type { ProcessedData } from '@/lib/types'
 import { fmt } from '@/lib/format'

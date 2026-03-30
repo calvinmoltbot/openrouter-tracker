@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { useCountUp } from '@/lib/hooks'
 import type { ProcessedData } from '@/lib/types'
