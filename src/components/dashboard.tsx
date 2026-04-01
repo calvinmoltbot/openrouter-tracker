@@ -2,21 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { Chart, registerables } from 'chart.js'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
-import { DashboardHeader } from '@/components/dashboard-header'
-import { DateRangePills } from '@/components/date-range-pills'
-import { ExecutiveSummary } from '@/components/executive-summary'
-import { BudgetBar } from '@/components/budget-bar'
+import { Sidebar, type Zone } from '@/components/sidebar'
+import { TopBar } from '@/components/top-bar'
 import { BudgetAlertBanner } from '@/components/budget-alert-banner'
 import { SettingsModal } from '@/components/settings-modal'
-import { KpiRow } from '@/components/kpi-row'
-import { TabOverview } from '@/components/tab-overview'
-import { TabModels } from '@/components/tab-models'
-import { TabTiming } from '@/components/tab-timing'
-import { TabApps } from '@/components/tab-apps'
-import { TabKeys } from '@/components/tab-keys'
+import { ZoneDashboard } from '@/components/zone-dashboard'
+import { ZoneBreakdown } from '@/components/zone-breakdown'
 import { buildColorMap } from '@/data/colors'
 import { fmt } from '@/lib/format'
 import { useTheme } from '@/lib/theme'
@@ -29,8 +22,6 @@ import {
   sendTelegramAlert,
   type BudgetPeriod,
 } from '@/lib/telegram'
-import { TabToday } from '@/components/tab-today'
-import { RecommendationsPanel } from '@/components/recommendations-panel'
 import type { ProcessedData, ApiKey, RawActivityRow } from '@/lib/types'
 
 Chart.register(...registerables)
@@ -63,6 +54,7 @@ function getPeriodDays(period: BudgetPeriod): { daysInPeriod: number; daysElapse
 }
 
 export function Dashboard({ data, fullData, prevData, rawRows, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle }: DashboardProps) {
+  const [zone, setZone] = useState<Zone>('dashboard')
   const [period, setPeriod] = useState<BudgetPeriod>(() => getBudgetPeriod())
   const [budget, setBudget] = useState(() => getBudgetForPeriod(getBudgetPeriod()))
   const [showSettings, setShowSettings] = useState(false)
@@ -154,91 +146,87 @@ export function Dashboard({ data, fullData, prevData, rawRows, source, keys, ran
   const projectedOverspend = budget > 0 ? projected - budget : null
 
   return (
-    <div className="max-w-[1400px] mx-auto p-4">
-      <DashboardHeader
-        dateRange={data.dateRange}
-        totalCalls={data.totalCalls}
-        source={source}
-        onExport={exportReport}
-        onReset={onReset}
+    <div className="flex min-h-screen">
+      <Sidebar
+        activeZone={zone}
+        onZoneChange={setZone}
         onSettingsClick={() => setShowSettings(true)}
-        cacheTimestamp={cacheTimestamp}
+        onExport={exportReport}
       />
 
-      <BudgetAlertBanner
-        spent={data.totalCost}
-        budget={budget}
-        period={period}
-        projectedOverspend={projectedOverspend !== null && projectedOverspend > 0 ? projectedOverspend : null}
-      />
+      <main className="flex-1 ml-14 p-4 max-w-[1400px] mx-auto">
+        <TopBar
+          dateRange={data.dateRange}
+          totalCalls={data.totalCalls}
+          source={source}
+          range={range}
+          onRangeChange={onRangeChange}
+          compare={compare}
+          onCompareToggle={onCompareToggle}
+          onReset={onReset}
+          cacheTimestamp={cacheTimestamp}
+        />
 
-      <DateRangePills range={range} onRangeChange={onRangeChange} compare={compare} onCompareToggle={onCompareToggle} />
-      <ExecutiveSummary data={data} fullData={fullData} budget={budget} />
-      <BudgetBar
-        spent={data.totalCost}
-        budget={budget}
-        period={period}
-        daysInPeriod={daysInPeriod}
-        daysElapsed={daysElapsed}
-        onChange={setBudget}
-        onPeriodChange={handlePeriodChange}
-        thresholds={thresholds}
-      />
+        <BudgetAlertBanner
+          spent={data.totalCost}
+          budget={budget}
+          period={period}
+          projectedOverspend={projectedOverspend !== null && projectedOverspend > 0 ? projectedOverspend : null}
+        />
 
-      {topModel && data.modelTotals[topModel]?.cost > data.totalCost * 0.5 && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertTriangle className="size-4" />
-          <AlertDescription>
-            <strong>{topModel} accounts for {topPct}% of your spend ({fmt(data.modelTotals[topModel].cost)} of {fmt(data.totalCost)})</strong>
-            {topModel.includes('DeepSeek') && ' — check your cron job model assignments.'}
-          </AlertDescription>
-        </Alert>
-      )}
+        {/* High model spend alert */}
+        {topModel && data.modelTotals[topModel]?.cost > data.totalCost * 0.5 && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="size-4" />
+            <AlertDescription>
+              <strong>{topModel} accounts for {topPct}% of your spend ({fmt(data.modelTotals[topModel].cost)} of {fmt(data.totalCost)})</strong>
+              {topModel.includes('DeepSeek') && ' — check your cron job model assignments.'}
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <KpiRow data={data} last7Total={last7Total} weekTrend={weekTrend} topModel={topModel} topPct={topPct} />
+        {zone === 'dashboard' ? (
+          <ZoneDashboard
+            data={data}
+            fullData={fullData}
+            prevData={prevData}
+            rawRows={rawRows}
+            colors={colors}
+            darkMode={darkMode}
+            budget={budget}
+            period={period}
+            daysInPeriod={daysInPeriod}
+            daysElapsed={daysElapsed}
+            onBudgetChange={setBudget}
+            onPeriodChange={handlePeriodChange}
+            thresholds={thresholds}
+            compare={compare}
+            last7Total={last7Total}
+            weekTrend={weekTrend}
+            topModel={topModel}
+            topPct={topPct}
+          />
+        ) : (
+          <ZoneBreakdown
+            data={data}
+            colors={colors}
+            darkMode={darkMode}
+            keys={keys}
+          />
+        )}
 
-      <RecommendationsPanel data={data} budget={budget} />
+        <div className="text-center py-5 text-xs text-muted-foreground">
+          OpenRouter Cost Tracker &middot; Data from {source === 'api' ? 'OpenRouter API' : source === 'db' ? 'Server DB' : 'CSV export'}
+        </div>
 
-      <Tabs defaultValue="today">
-        <TabsList className="mb-4">
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="models">Models</TabsTrigger>
-          <TabsTrigger value="timing">Timing</TabsTrigger>
-          <TabsTrigger value="apps">Apps</TabsTrigger>
-          <TabsTrigger value="keys">Keys{keys.length > 0 ? ` (${keys.length})` : ''}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="today" className="animate-in fade-in duration-300">
-          <TabToday rawRows={rawRows} darkMode={darkMode} dailyBudget={getBudgetForPeriod('daily')} />
-        </TabsContent>
-        <TabsContent value="overview" className="animate-in fade-in duration-300">
-          <TabOverview data={data} prevData={prevData} colors={colors} topModel={topModel} weekTrend={weekTrend} darkMode={darkMode} compare={compare} />
-        </TabsContent>
-        <TabsContent value="models" className="animate-in fade-in duration-300">
-          <TabModels data={data} colors={colors} darkMode={darkMode} />
-        </TabsContent>
-        <TabsContent value="timing" className="animate-in fade-in duration-300">
-          <TabTiming data={data} darkMode={darkMode} />
-        </TabsContent>
-        <TabsContent value="apps" className="animate-in fade-in duration-300">
-          <TabApps data={data} colors={colors} darkMode={darkMode} />
-        </TabsContent>
-        <TabsContent value="keys" className="animate-in fade-in duration-300">
-          <TabKeys keys={keys} darkMode={darkMode} />
-        </TabsContent>
-      </Tabs>
-
-      <div className="text-center py-5 text-xs text-muted-foreground">
-        OpenRouter Cost Tracker &middot; Data from {source === 'api' ? 'OpenRouter API' : 'CSV export'}
-      </div>
-
-      <SettingsModal
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        period={period}
-        onPeriodChange={handlePeriodChange}
-        onBudgetChange={setBudget}
-      />
+        <SettingsModal
+          open={showSettings}
+          onClose={() => setShowSettings(false)}
+          period={period}
+          onPeriodChange={handlePeriodChange}
+          onBudgetChange={setBudget}
+        />
+      </main>
     </div>
   )
 }

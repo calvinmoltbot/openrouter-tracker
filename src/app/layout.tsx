@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import '@fontsource-variable/geist'
+import '@fontsource-variable/inter'
 import '@/app/globals.css'
 import { ThemeProvider } from '@/lib/theme'
 

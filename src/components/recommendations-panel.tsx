@@ -59,6 +59,49 @@ interface RecommendationsPanelProps {
   budget: number
 }
 
+function RecCard({ rec, onDismiss }: { rec: Recommendation; onDismiss: () => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const Icon = iconMap[rec.icon] || Sparkles
+
+  return (
+    <Card className={`${severityStyles[rec.severity]} cursor-pointer`} onClick={() => setExpanded(e => !e)}>
+      <CardContent className="flex gap-3">
+        <Icon className="size-5 shrink-0 mt-0.5 text-muted-foreground" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <h4 className="text-sm font-semibold leading-snug truncate">{rec.title}</h4>
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${severityBadge[rec.severity]}`}>
+                {rec.severity}
+              </span>
+              {rec.savings !== null && rec.savings > 0 && (
+                <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-xs font-medium shrink-0">
+                  Save ~{fmt(rec.savings)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              {expanded ? <ChevronUp className="size-3.5 text-muted-foreground" /> : <ChevronDown className="size-3.5 text-muted-foreground" />}
+              <button
+                onClick={e => { e.stopPropagation(); onDismiss() }}
+                className="p-0.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                aria-label="Dismiss recommendation"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          </div>
+          {expanded && (
+            <p className="text-[13px] text-muted-foreground leading-relaxed mt-2">
+              {rec.description}
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function RecommendationsPanel({ data, budget }: RecommendationsPanelProps) {
   const [dismissed, setDismissed] = useState<string[]>(getDismissed)
   const [collapsed, setCollapsed] = useState(false)
@@ -95,41 +138,9 @@ export function RecommendationsPanel({ data, budget }: RecommendationsPanelProps
       {!collapsed && (
         visibleRecs.length > 0 ? (
           <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-3">
-            {visibleRecs.map(rec => {
-              const Icon = iconMap[rec.icon] || Sparkles
-              return (
-                <Card key={rec.id} className={severityStyles[rec.severity]}>
-                  <CardContent className="flex gap-3">
-                    <Icon className="size-5 shrink-0 mt-0.5 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-semibold leading-snug">{rec.title}</h4>
-                        <button
-                          onClick={() => dismiss(rec.id)}
-                          className="shrink-0 p-0.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                          aria-label="Dismiss recommendation"
-                        >
-                          <X className="size-3.5" />
-                        </button>
-                      </div>
-                      <p className="text-[13px] text-muted-foreground leading-relaxed mt-1">
-                        {rec.description}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${severityBadge[rec.severity]}`}>
-                          {rec.severity}
-                        </span>
-                        {rec.savings !== null && rec.savings > 0 && (
-                          <span className="inline-flex items-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-xs font-medium">
-                            Save ~{fmt(rec.savings)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+            {visibleRecs.map(rec => (
+              <RecCard key={rec.id} rec={rec} onDismiss={() => dismiss(rec.id)} />
+            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">
