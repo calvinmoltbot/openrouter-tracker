@@ -189,10 +189,22 @@ function round(n: number, d = 4): number {
 export function filterRowsByRange(rows: RawActivityRow[], range: string): RawActivityRow[] {
   if (range === 'all') return rows
 
+  // Custom date range: "custom:YYYY-MM-DD:YYYY-MM-DD"
+  if (range.startsWith('custom:')) {
+    const [, startStr, endStr] = range.split(':')
+    return rows.filter(r => {
+      const day = (r.created_at || '').slice(0, 10)
+      return day >= startStr && day <= endStr
+    })
+  }
+
   const now = new Date()
   let startDate: Date
 
   switch (range) {
+    case '1d':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      break
     case '7d':
       startDate = new Date(now.getTime() - 7 * 86400000)
       break
@@ -219,12 +231,19 @@ export function filterRowsByRange(rows: RawActivityRow[], range: string): RawAct
 
 export function filterRowsByPreviousRange(rows: RawActivityRow[], range: string): RawActivityRow[] {
   if (range === 'all') return []
+  if (range.startsWith('custom:')) return [] // No comparison for custom ranges
 
   const now = new Date()
   let startDate: Date
   let endDate: Date
 
   switch (range) {
+    case '1d': {
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      endDate = today
+      startDate = new Date(today.getTime() - 86400000)
+      break
+    }
     case '7d':
       endDate = new Date(now.getTime() - 7 * 86400000)
       startDate = new Date(now.getTime() - 14 * 86400000)

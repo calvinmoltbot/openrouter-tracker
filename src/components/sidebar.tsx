@@ -31,6 +31,14 @@ export function Sidebar({ activeZone, onZoneChange, onSettingsClick, onExport }:
   ]
 
   return (
+    <>
+    {/* Backdrop overlay when sidebar is expanded */}
+    {expanded && (
+      <div
+        className="fixed inset-0 z-30 bg-black/20 backdrop-blur-[1px] transition-opacity duration-200"
+        onClick={() => setExpanded(false)}
+      />
+    )}
     <aside
       className="fixed left-0 top-0 h-full z-40 flex flex-col bg-black/60 backdrop-blur-2xl border-r border-white/[0.08] transition-[width] duration-200 ease-out"
       style={{ width: expanded ? 180 : 56 }}
@@ -90,5 +98,6 @@ export function Sidebar({ activeZone, onZoneChange, onSettingsClick, onExport }:
         </button>
       </div>
     </aside>
+    </>
   )
 }
