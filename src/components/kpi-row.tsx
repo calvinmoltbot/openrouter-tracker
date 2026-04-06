@@ -39,7 +39,7 @@ export function KpiRow({ data, last7Total, weekTrend, topModel, topPct }: KpiRow
         <CardContent>
           <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Last 7 Days</div>
           <div className="text-2xl font-bold">{fmt(last7Animated)}</div>
-          <div className="text-xs mt-0.5" style={{ color: parseInt(weekTrend) < 0 ? '#10b981' : '#ef4444' }}>
+          <div className="text-xs mt-0.5" style={{ color: parseInt(weekTrend) < 0 ? '#6bbf8a' : '#c47e7e' }}>
             {weekTrend}% vs prior 7d
           </div>
         </CardContent>
