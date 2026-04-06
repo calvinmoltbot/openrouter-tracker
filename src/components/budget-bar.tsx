@@ -41,12 +41,12 @@ export function BudgetBar({
   // Color based on thresholds
   const barColor =
     pct >= t3
-      ? 'bg-red-500'
+      ? 'bg-[#ee7d77]'
       : pct >= t2
-        ? 'bg-red-500'
+        ? 'bg-[#ee7d77]'
         : pct >= t1
-          ? 'bg-amber-500'
-          : 'bg-emerald-500'
+          ? 'bg-[#f9a0ab]'
+          : 'bg-[#f1ffd4]'
 
   const pulse = pct >= t2
 
@@ -115,12 +115,12 @@ export function BudgetBar({
       {budget > 0 && daysElapsed > 0 && (
         <div className="mt-2 text-xs">
           {projectedOver > 0 ? (
-            <span className="text-red-400">
+            <span className="text-[#ee7d77]">
               At current rate, you&apos;ll exceed your {fmt(budget, 0)} budget by{' '}
               {fmt(projectedOver)} this {periodLabel}
             </span>
           ) : (
-            <span className="text-emerald-400">
+            <span className="text-[#d7e5bb]">
               On track to use {((projected / budget) * 100).toFixed(0)}% of budget this {periodLabel}
             </span>
           )}

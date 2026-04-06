@@ -28,8 +28,8 @@ export function BudgetAlertBanner({ spent, budget, period, projectedOverspend }:
       className={cn(
         'mb-4 rounded-xl px-5 py-3 flex items-start gap-3 ring-1',
         isRed
-          ? 'bg-red-500/10 text-red-400 ring-red-500/20'
-          : 'bg-amber-500/10 text-amber-400 ring-amber-500/20'
+          ? 'bg-[#ee7d77]/10 text-[#ee7d77] ring-[#ee7d77]/20'
+          : 'bg-[#f9a0ab]/10 text-[#f9a0ab] ring-[#f9a0ab]/20'
       )}
     >
       <AlertTriangle className="size-4 mt-0.5 shrink-0" />

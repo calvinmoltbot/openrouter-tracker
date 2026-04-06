@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle, Sun, Moon } from 'lucide-react'
@@ -89,7 +89,10 @@ export function SetupScreen({ onData }: SetupScreenProps) {
         {darkMode ? <Sun className="size-4" /> : <Moon className="size-4" />}
       </Button>
 
-      <h1 className="text-[28px] font-bold mb-2">OpenRouter Cost Tracker</h1>
+      <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#73323d] to-[#ffb2bb] mb-4">
+        <span className="text-2xl font-bold text-white">OR</span>
+      </div>
+      <h1 className="text-[28px] font-bold mb-2 font-heading">OpenRouter Cost Tracker</h1>
       <p className="text-muted-foreground mb-6">Monitor your API spending across models and apps</p>
 
       {error && (
@@ -99,8 +102,7 @@ export function SetupScreen({ onData }: SetupScreenProps) {
         </Alert>
       )}
 
-      <Card className="text-left mb-4">
-        <CardContent className="space-y-3">
+      <div className="glass-card text-left mb-4 rounded-xl p-5 space-y-3">
           <h3 className="text-[15px] font-semibold">Option 1: Fetch from API</h3>
           <p className="text-xs text-muted-foreground">
             Fetches activity data using the provisioning key configured on the server.
@@ -108,16 +110,14 @@ export function SetupScreen({ onData }: SetupScreenProps) {
           <Button className="w-full" onClick={fetchFromApi} disabled={loading}>
             {loading ? 'Connecting...' : 'Fetch Activity Data'}
           </Button>
-        </CardContent>
-      </Card>
+      </div>
 
       <div className="text-muted-foreground text-[13px] my-4">or</div>
 
-      <Card className="text-left">
-        <CardContent className="space-y-3">
+      <div className="glass-card text-left rounded-xl p-5 space-y-3">
           <h3 className="text-[15px] font-semibold">Option 2: Upload CSV Export</h3>
           <div
-            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors text-muted-foreground text-sm ${dragActive ? 'border-blue-500 bg-blue-500/5' : 'border-border hover:border-blue-500'}`}
+            className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors text-muted-foreground text-sm ${dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary'}`}
             onClick={() => fileRef.current?.click()}
             onDragOver={(e: React.DragEvent) => { e.preventDefault(); setDragActive(true) }}
             onDragLeave={() => setDragActive(false)}
@@ -127,10 +127,9 @@ export function SetupScreen({ onData }: SetupScreenProps) {
             <input ref={fileRef} type="file" accept=".csv" className="hidden" onChange={e => handleFile(e.target.files?.[0])} />
           </div>
           <p className="text-xs text-muted-foreground">
-            Export from <a href="https://openrouter.ai/activity" target="_blank" rel="noopener" className="text-blue-500 hover:underline">OpenRouter Activity page</a>
+            Export from <a href="https://openrouter.ai/activity" target="_blank" rel="noopener" className="text-primary hover:underline">OpenRouter Activity page</a>
           </p>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   )
 }

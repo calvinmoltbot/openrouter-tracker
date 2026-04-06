@@ -26,24 +26,24 @@ export function TabModels({ data, colors, darkMode, search = '' }: TabModelsProp
           <CardTitle>Model Breakdown</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="border-0">
             <TableHeader>
-              <TableRow>
-                <TableHead>Model</TableHead>
-                <TableHead>Cost</TableHead>
-                <TableHead>Calls</TableHead>
-                <TableHead>Avg $/call</TableHead>
-                <TableHead>Prompt Tokens</TableHead>
-                {hasLog && <TableHead>Cache Saved</TableHead>}
-                {hasLog && <TableHead>Avg Latency</TableHead>}
-                {hasLog && <TableHead>Avg TTFT</TableHead>}
+              <TableRow className="border-0">
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Model</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Cost</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Calls</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Avg $/call</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Prompt Tokens</TableHead>
+                {hasLog && <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Cache Saved</TableHead>}
+                {hasLog && <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Avg Latency</TableHead>}
+                {hasLog && <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Avg TTFT</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredModels.map(m => {
                 const t = data.modelTotals[m]
                 return (
-                  <TableRow key={m}>
+                  <TableRow key={m} className="border-0 even:bg-[rgba(10,24,57,0.3)]">
                     <TableCell className="flex items-center gap-2">
                       <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: colors[m] }} />
                       {m}

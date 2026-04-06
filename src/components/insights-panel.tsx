@@ -21,7 +21,7 @@ export function InsightsPanel({ data, topModel, weekTrend }: InsightsPanelProps)
         <CardContent>
           <h4 className="text-sm font-semibold mb-1.5">Top Spender</h4>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
-            <span className="text-red-500 font-semibold">{topModel}</span> consumed {fmt(topModelData?.cost || 0)} across{' '}
+            <span className="text-primary font-semibold">{topModel}</span> consumed {fmt(topModelData?.cost || 0)} across{' '}
             {(topModelData?.calls || 0).toLocaleString()} calls at{' '}
             {fmt(topModelData?.avgCostPerCall || 0, 6)}/call.
             {data.hasLogData && topModelData?.avgLatencyMs > 0 && (
@@ -43,8 +43,8 @@ export function InsightsPanel({ data, topModel, weekTrend }: InsightsPanelProps)
           <h4 className="text-sm font-semibold mb-1.5">Weekly Trend</h4>
           <p className="text-[13px] text-muted-foreground leading-relaxed">
             {parseInt(weekTrend) < 0
-              ? <><span className="text-emerald-500 font-semibold">Spending is down {Math.abs(parseInt(weekTrend))}%</span> vs the prior 7 days.</>
-              : <><span className="text-red-500 font-semibold">Spending is up {weekTrend}%</span> vs the prior 7 days.</>
+              ? <><span className="text-[#d7e5bb] font-semibold">Spending is down {Math.abs(parseInt(weekTrend))}%</span> vs the prior 7 days.</>
+              : <><span className="text-primary font-semibold">Spending is up {weekTrend}%</span> vs the prior 7 days.</>
             }
           </p>
         </CardContent>
@@ -54,7 +54,7 @@ export function InsightsPanel({ data, topModel, weekTrend }: InsightsPanelProps)
           <CardContent>
             <h4 className="text-sm font-semibold mb-1.5">Cache Efficiency</h4>
             <p className="text-[13px] text-muted-foreground leading-relaxed">
-              <span className="text-emerald-500 font-semibold">{fmt(data.totalCacheSavings)} saved</span> from prompt caching across{' '}
+              <span className="text-[#d7e5bb] font-semibold">{fmt(data.totalCacheSavings)} saved</span> from prompt caching across{' '}
               {(data.totalCachedTok / 1e6).toFixed(1)}M cached tokens.
               {data.totalReasoningTok > 0 && <> {(data.totalReasoningTok / 1e6).toFixed(1)}M reasoning tokens used.</>}
             </p>

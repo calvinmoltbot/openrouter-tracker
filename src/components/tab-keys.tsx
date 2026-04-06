@@ -128,22 +128,22 @@ export function TabKeys({ keys, darkMode, search = '' }: TabKeysProps) {
           <CardDescription>Usage per key — identify which keys are driving spend</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="border-0">
             <TableHeader>
-              <TableRow>
-                <TableHead>Key Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Total Spend</TableHead>
-                <TableHead>This Month</TableHead>
-                <TableHead>This Week</TableHead>
-                <TableHead>Today</TableHead>
-                <TableHead>% of Total</TableHead>
-                <TableHead>Limit</TableHead>
+              <TableRow className="border-0">
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Key Name</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Status</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Total Spend</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">This Month</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">This Week</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Today</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">% of Total</TableHead>
+                <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Limit</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sorted.map(k => (
-                <TableRow key={k.hash} className={k.disabled ? 'opacity-50' : ''}>
+                <TableRow key={k.hash} className={`border-0 even:bg-[rgba(10,24,57,0.3)] ${k.disabled ? 'opacity-50' : ''}`}>
                   <TableCell className="font-medium">
                     {k.name || k.label || k.hash.slice(0, 12)}
                   </TableCell>

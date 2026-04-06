@@ -30,15 +30,15 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 }
 
 const severityStyles: Record<Recommendation['severity'], string> = {
-  critical: 'border-l-4 border-l-red-500',
-  warning: 'border-l-4 border-l-amber-500',
-  info: 'border-l-4 border-l-blue-500',
+  critical: 'border-l-4 border-l-[#ee7d77]',
+  warning: 'border-l-4 border-l-[#f9a0ab]',
+  info: 'border-l-4 border-l-[#909fb4]',
 }
 
 const severityBadge: Record<Recommendation['severity'], string> = {
-  critical: 'bg-red-500/15 text-red-600 dark:text-red-400',
-  warning: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
-  info: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+  critical: 'bg-[#ee7d77]/15 text-[#ee7d77]',
+  warning: 'bg-[#f9a0ab]/15 text-[#f9a0ab]',
+  info: 'bg-[#909fb4]/15 text-[#909fb4]',
 }
 
 function getDismissed(): string[] {

@@ -52,14 +52,14 @@ export function TabApps({ data, colors, darkMode, search = '' }: TabAppsProps) {
               <CardDescription>Which keys and models each app uses (from Logs CSV)</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
+              <Table className="border-0">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>App</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Calls</TableHead>
-                    <TableHead>Keys Used</TableHead>
-                    <TableHead>Models Used</TableHead>
+                  <TableRow className="border-0">
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">App</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Cost</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Calls</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Keys Used</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Models Used</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -68,7 +68,7 @@ export function TabApps({ data, colors, darkMode, search = '' }: TabAppsProps) {
                     const keyEntries = Object.entries(app.keys).sort(([, a], [, b]) => b - a)
                     const modelEntries = Object.entries(app.models).sort(([, a], [, b]) => b - a)
                     return (
-                      <TableRow key={a}>
+                      <TableRow key={a} className="border-0 even:bg-[rgba(10,24,57,0.3)]">
                         <TableCell className="font-medium">{a}</TableCell>
                         <TableCell className="font-semibold">{fmt(app.cost)}</TableCell>
                         <TableCell>{app.calls.toLocaleString()}</TableCell>
@@ -108,14 +108,14 @@ export function TabApps({ data, colors, darkMode, search = '' }: TabAppsProps) {
               <CardDescription>What each API key is being used for</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
+              <Table className="border-0">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>API Key</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Calls</TableHead>
-                    <TableHead>Apps</TableHead>
-                    <TableHead>Models</TableHead>
+                  <TableRow className="border-0">
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">API Key</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Cost</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Calls</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Apps</TableHead>
+                    <TableHead className="text-[11px] uppercase tracking-[0.05em] text-muted-foreground font-medium">Models</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -125,7 +125,7 @@ export function TabApps({ data, colors, darkMode, search = '' }: TabAppsProps) {
                       const appEntries = Object.entries(ks.apps).sort(([, a], [, b]) => b - a)
                       const modelEntries = Object.entries(ks.models).sort(([, a], [, b]) => b - a)
                       return (
-                        <TableRow key={keyName}>
+                        <TableRow key={keyName} className="border-0 even:bg-[rgba(10,24,57,0.3)]">
                           <TableCell className="font-medium">{keyName}</TableCell>
                           <TableCell className="font-semibold">{fmt(ks.cost)}</TableCell>
                           <TableCell>{ks.calls.toLocaleString()}</TableCell>
