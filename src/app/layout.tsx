@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import '@fontsource-variable/inter'
+import '@fontsource-variable/manrope'
 import '@/app/globals.css'
 import { ThemeProvider } from '@/lib/theme'
 

@@ -48,7 +48,7 @@ export function TopBar({ dateRange, totalCalls, source, range, onRangeChange, co
     <div className="flex items-center justify-between gap-4 mb-4 flex-wrap">
       <div className="flex items-center gap-3">
         <div>
-          <h1 className="text-lg font-bold text-foreground">OpenRouter Cost Tracker</h1>
+          <h1 className="text-lg font-semibold text-foreground font-heading">OpenRouter Cost Tracker</h1>
           <div className="text-xs text-muted-foreground">
             {dateRange} &middot; {totalCalls.toLocaleString()} calls
             {excludedApps.size > 0 && (

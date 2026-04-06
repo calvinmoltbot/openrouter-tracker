@@ -41,18 +41,18 @@ export function Sidebar({ activeZone, onZoneChange, onSettingsClick, onExport }:
       />
     )}
     <aside
-      className="fixed left-0 top-0 h-full z-40 flex flex-col bg-black/60 backdrop-blur-2xl border-r border-white/[0.08] transition-[width] duration-200 ease-out"
+      className="fixed left-0 top-0 h-full z-40 flex flex-col bg-sidebar border-r border-sidebar-border transition-[width] duration-200 ease-out"
       style={{ width: expanded ? 180 : 56 }}
       onMouseEnter={() => setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-3 h-14 shrink-0">
-        <div className="size-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+        <div className="size-8 rounded-lg bg-gradient-to-br from-[#73323d] to-[#ffb2bb] flex items-center justify-center text-white text-xs font-bold shrink-0">
           OR
         </div>
         {expanded && (
-          <span className="text-sm font-semibold text-foreground whitespace-nowrap overflow-hidden">
+          <span className="text-sm font-semibold text-foreground whitespace-nowrap overflow-hidden font-heading">
             Cost Tracker
           </span>
         )}
@@ -71,7 +71,7 @@ export function Sidebar({ activeZone, onZoneChange, onSettingsClick, onExport }:
             }`}
           >
             {activeZone === item.id && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-indigo-500 rounded-r-full" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-primary rounded-r-full" />
             )}
             <item.icon className="size-[18px] shrink-0" />
             {expanded && <span className="whitespace-nowrap overflow-hidden">{item.label}</span>}

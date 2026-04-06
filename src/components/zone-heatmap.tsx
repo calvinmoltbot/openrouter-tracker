@@ -69,7 +69,7 @@ export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Heatmap Analysis</h2>
+          <h2 className="text-lg font-semibold text-foreground font-heading">Heatmap Analysis</h2>
           <p className="text-xs text-muted-foreground">
             {data.dateRange} &middot; {view === 'spend' ? 'Daily spend intensity' : `Per-${view} daily breakdown`}
           </p>
@@ -107,7 +107,7 @@ export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
       )}
 
       {/* Heatmap */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="glass-card p-4">
         <HeatmapGrid
           days={data.days}
           rows={rows}

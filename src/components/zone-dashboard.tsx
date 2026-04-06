@@ -76,8 +76,8 @@ function DeltaBadge({ current, previous, label }: { current: number; previous: n
   const isDown = delta < -5
   return (
     <div className="flex items-center gap-1 text-sm">
-      {isUp ? <TrendingUp className="size-3.5 text-red-500" /> : isDown ? <TrendingDown className="size-3.5 text-emerald-500" /> : <Minus className="size-3.5 text-muted-foreground" />}
-      <span className={isUp ? 'text-red-500' : isDown ? 'text-emerald-500' : 'text-muted-foreground'}>
+      {isUp ? <TrendingUp className="size-3.5 text-primary" /> : isDown ? <TrendingDown className="size-3.5 text-[#f1ffd4]" /> : <Minus className="size-3.5 text-muted-foreground" />}
+      <span className={isUp ? 'text-primary' : isDown ? 'text-[#f1ffd4]' : 'text-muted-foreground'}>
         {delta > 0 ? '+' : ''}{delta.toFixed(0)}%
       </span>
       <span className="text-muted-foreground text-xs">{label} ({fmt(previous)})</span>
@@ -132,7 +132,7 @@ export function ZoneDashboard({
     const tc = themeColors(darkMode)
     const barColors = todayData.hourly.map(h =>
       h.hour > currentHour ? 'rgba(100,100,100,0.2)' :
-        h.cost > 2 ? '#c47e7ecc' : h.cost > 0.5 ? '#d4a855cc' : '#6886c5cc'
+        h.cost > 2 ? '#ffb2bbcc' : h.cost > 0.5 ? '#f9a0abcc' : '#909fb4cc'
     )
     return {
       type: 'bar',

@@ -73,33 +73,33 @@ export function ExecutiveSummary({ data, fullData, budget }: ExecutiveSummaryPro
 
   // Projection color
   const projectionColor = projected > budget
-    ? 'text-red-500'
+    ? 'text-primary'
     : hasPrevMonth && projected > prevMonthCost
-      ? 'text-amber-500'
-      : 'text-emerald-500'
+      ? 'text-[#f9a0ab]'
+      : 'text-[#f1ffd4]'
 
   return (
-    <div className="mb-4 rounded-xl border border-border bg-gradient-to-br from-card to-muted/50 p-5 sm:p-6 backdrop-blur-sm">
+    <div className="mb-4 glass-card p-5 sm:p-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {/* Block 1: How much this month? */}
         <div>
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+          <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground mb-2">
             How much this month?
           </div>
-          <div className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
+          <div className="text-4xl sm:text-[3.5rem] font-light tracking-tight text-foreground font-heading leading-none">
             {fmt(animatedCost)}
           </div>
           <div className="mt-2 flex items-center gap-1.5 text-sm">
             {delta !== null ? (
               <>
                 {delta > 0 ? (
-                  <TrendingUp className="size-4 text-red-500" />
+                  <TrendingUp className="size-4 text-primary" />
                 ) : delta < 0 ? (
-                  <TrendingDown className="size-4 text-emerald-500" />
+                  <TrendingDown className="size-4 text-[#f1ffd4]" />
                 ) : (
                   <Minus className="size-4 text-muted-foreground" />
                 )}
-                <span className={delta > 0 ? 'text-red-500' : delta < 0 ? 'text-emerald-500' : 'text-muted-foreground'}>
+                <span className={delta > 0 ? 'text-primary' : delta < 0 ? 'text-[#f1ffd4]' : 'text-muted-foreground'}>
                   {delta > 0 ? 'Up' : delta < 0 ? 'Down' : 'Flat'} {Math.abs(Math.round(delta))}% from last month
                 </span>
               </>
@@ -111,7 +111,7 @@ export function ExecutiveSummary({ data, fullData, budget }: ExecutiveSummaryPro
 
         {/* Block 2: What's eating the money? */}
         <div>
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+          <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground mb-2">
             What&apos;s eating the money?
           </div>
           {topModel ? (
@@ -130,7 +130,7 @@ export function ExecutiveSummary({ data, fullData, budget }: ExecutiveSummaryPro
 
         {/* Block 3: Is it getting worse? */}
         <div>
-          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">
+          <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground mb-2">
             Is it getting worse?
           </div>
           {projected > 0 ? (

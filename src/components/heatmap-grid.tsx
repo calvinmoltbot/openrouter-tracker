@@ -23,24 +23,25 @@ interface HeatmapGridProps {
 }
 
 function intensityColor(value: number, max: number, darkMode: boolean, baseColor?: string): string {
-  if (value === 0) return darkMode ? 'rgba(255,255,255,0.05)' : '#f3f4f6'
+  if (value === 0) return darkMode ? '#0a2257' : '#f3f4f6'
 
   if (baseColor) {
     const opacity = Math.max(0.25, Math.min(1, value / max))
     return baseColor + Math.round(opacity * 255).toString(16).padStart(2, '0')
   }
 
+  // Monochromatic scale: surface-container-highest → tertiary
   const ratio = value / max
   if (darkMode) {
-    if (ratio > 0.75) return '#86efac'
-    if (ratio > 0.5) return '#22c55e'
-    if (ratio > 0.25) return '#15803d'
-    return '#14532d'
+    if (ratio > 0.75) return '#f1ffd4' // tertiary (peak)
+    if (ratio > 0.5) return '#d7e5bb'  // tertiary-dim
+    if (ratio > 0.25) return '#5a6745' // on-tertiary-fixed-variant
+    return '#0b1d48'                    // surface-container-high
   }
-  if (ratio > 0.75) return '#15803d'
-  if (ratio > 0.5) return '#22c55e'
-  if (ratio > 0.25) return '#86efac'
-  return '#dcfce7'
+  if (ratio > 0.75) return '#3e4a2b'
+  if (ratio > 0.5) return '#5a6745'
+  if (ratio > 0.25) return '#d7e5bb'
+  return '#e5f4c9'
 }
 
 export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {

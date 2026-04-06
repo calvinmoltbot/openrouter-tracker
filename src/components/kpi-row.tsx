@@ -1,6 +1,5 @@
 'use client'
 
-import { Card, CardContent } from '@/components/ui/card'
 import { useCountUp } from '@/lib/hooks'
 import type { ProcessedData } from '@/lib/types'
 import { fmt } from '@/lib/format'
@@ -19,59 +18,59 @@ export function KpiRow({ data, last7Total, weekTrend, topModel, topPct }: KpiRow
   const last7Animated = useCountUp(last7Total)
   const dailyAvgAnimated = useCountUp(data.totalCost / Math.max(data.days.length, 1))
 
+  const cards = [
+    {
+      label: 'Total Spend',
+      value: fmt(totalCostAnimated),
+      sub: `${data.totalCalls.toLocaleString()} API calls`,
+      accent: '#ffb2bb',
+    },
+    {
+      label: 'Top Model Cost',
+      value: fmt(topModelCostAnimated),
+      sub: `${topModel} (${topPct}%)`,
+      accent: '#f9a0ab',
+    },
+    {
+      label: 'Last 7 Days',
+      value: fmt(last7Animated),
+      sub: `${weekTrend}% vs prior 7d`,
+      subColor: parseInt(weekTrend) < 0 ? '#f1ffd4' : '#ffb2bb',
+      accent: '#909fb4',
+    },
+    {
+      label: 'Daily Avg',
+      value: fmt(dailyAvgAnimated),
+      sub: `Projected: ~$${(data.totalCost / Math.max(data.days.length, 1) * 30).toFixed(0)}/mo`,
+      accent: '#909fb4',
+    },
+    data.hasLogData && data.totalCacheSavings > 0
+      ? {
+          label: 'Cache Savings',
+          value: fmt(data.totalCacheSavings),
+          sub: `${(data.totalCachedTok / 1e6).toFixed(1)}M tokens cached`,
+          accent: '#f1ffd4',
+        }
+      : {
+          label: 'Models',
+          value: String(data.models.length),
+          sub: `${Object.keys(data.apps).length} apps`,
+          accent: '#f1ffd4',
+        },
+  ]
+
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4 mb-4">
-      <Card className="border-l-4 border-l-red-500">
-        <CardContent>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Total Spend</div>
-          <div className="text-2xl font-bold">{fmt(totalCostAnimated)}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{data.totalCalls.toLocaleString()} API calls</div>
-        </CardContent>
-      </Card>
-      <Card className="border-l-4 border-l-amber-500">
-        <CardContent>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Top Model Cost</div>
-          <div className="text-2xl font-bold">{fmt(topModelCostAnimated)}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">{topModel} ({topPct}%)</div>
-        </CardContent>
-      </Card>
-      <Card className="border-l-4 border-l-blue-500">
-        <CardContent>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Last 7 Days</div>
-          <div className="text-2xl font-bold">{fmt(last7Animated)}</div>
-          <div className="text-xs mt-0.5" style={{ color: parseInt(weekTrend) < 0 ? '#6bbf8a' : '#c47e7e' }}>
-            {weekTrend}% vs prior 7d
+      {cards.map(card => (
+        <div key={card.label} className="glass-card p-4" style={{ borderLeftWidth: 3, borderLeftColor: card.accent }}>
+          <div className="text-[11px] text-muted-foreground uppercase tracking-[0.05em] mb-0.5">{card.label}</div>
+          <div className="text-2xl font-bold font-heading">{card.value}</div>
+          <div className="text-xs mt-0.5" style={{ color: card.subColor || undefined }}>
+            {!card.subColor && <span className="text-muted-foreground">{card.sub}</span>}
+            {card.subColor && card.sub}
           </div>
-        </CardContent>
-      </Card>
-      <Card className="border-l-4 border-l-blue-500">
-        <CardContent>
-          <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Daily Avg</div>
-          <div className="text-2xl font-bold">{fmt(dailyAvgAnimated)}</div>
-          <div className="text-xs text-muted-foreground mt-0.5">
-            Projected: ~${(data.totalCost / Math.max(data.days.length, 1) * 30).toFixed(0)}/mo
-          </div>
-        </CardContent>
-      </Card>
-      {data.hasLogData && data.totalCacheSavings > 0 ? (
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardContent>
-            <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Cache Savings</div>
-            <div className="text-2xl font-bold">{fmt(data.totalCacheSavings)}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {(data.totalCachedTok / 1e6).toFixed(1)}M tokens cached
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="border-l-4 border-l-emerald-500">
-          <CardContent>
-            <div className="text-[11px] text-muted-foreground uppercase tracking-wide mb-0.5">Models</div>
-            <div className="text-2xl font-bold">{data.models.length}</div>
-            <div className="text-xs text-muted-foreground mt-0.5">{Object.keys(data.apps).length} apps</div>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      ))}
     </div>
   )
 }
