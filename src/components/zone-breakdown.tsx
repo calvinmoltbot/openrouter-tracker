@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Search, X } from 'lucide-react'
 import { TabModels } from '@/components/tab-models'
 import { TabApps } from '@/components/tab-apps'
 import { TabKeys } from '@/components/tab-keys'
@@ -23,6 +24,7 @@ const tabs: { id: SubTab; label: string }[] = [
 
 export function ZoneBreakdown({ data, colors, darkMode, keys }: ZoneBreakdownProps) {
   const [active, setActive] = useState<SubTab>('models')
+  const [search, setSearch] = useState('')
 
   return (
     <div>
@@ -46,13 +48,31 @@ export function ZoneBreakdown({ data, colors, darkMode, keys }: ZoneBreakdownPro
             </button>
           ))}
         </div>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={`Filter ${active}…`}
+            className="pl-8 pr-7 py-1.5 text-xs rounded-md border border-border bg-background text-foreground w-48 placeholder:text-muted-foreground"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Tab content */}
       <div className="animate-in fade-in duration-300">
-        {active === 'models' && <TabModels data={data} colors={colors} darkMode={darkMode} />}
-        {active === 'apps' && <TabApps data={data} colors={colors} darkMode={darkMode} />}
-        {active === 'keys' && <TabKeys keys={keys} darkMode={darkMode} />}
+        {active === 'models' && <TabModels data={data} colors={colors} darkMode={darkMode} search={search} />}
+        {active === 'apps' && <TabApps data={data} colors={colors} darkMode={darkMode} search={search} />}
+        {active === 'keys' && <TabKeys keys={keys} darkMode={darkMode} search={search} />}
       </div>
     </div>
   )

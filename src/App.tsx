@@ -5,6 +5,7 @@ import { SetupScreen } from '@/components/setup-screen'
 import { Dashboard } from '@/components/dashboard'
 import { processRows, filterRowsByRange, filterRowsByPreviousRange } from '@/data/processor'
 import { cacheData, getCachedData, clearCache } from '@/lib/cache'
+import { appGroup } from '@/data/processor'
 import type { RawActivityRow, ApiKey } from '@/lib/types'
 
 export default function App() {
@@ -16,6 +17,13 @@ export default function App() {
       return localStorage.getItem('or_range') || 'month'
     }
     return 'month'
+  })
+  const [excludedApps, setExcludedApps] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('or_excluded_apps')
+      return stored ? new Set(JSON.parse(stored)) : new Set()
+    }
+    return new Set()
   })
   const [cacheTimestamp, setCacheTimestamp] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,22 +78,39 @@ export default function App() {
     localStorage.setItem('or_range', range)
   }, [range])
 
+  useEffect(() => {
+    localStorage.setItem('or_excluded_apps', JSON.stringify([...excludedApps]))
+  }, [excludedApps])
+
+  const filterExcluded = useCallback((rows: RawActivityRow[]) => {
+    if (excludedApps.size === 0) return rows
+    return rows.filter(r => !excludedApps.has(appGroup(r.app_name)))
+  }, [excludedApps])
+
+  // All unique app names from rawRows (for the exclusion UI)
+  const allApps = useMemo(() => {
+    if (!rawRows) return []
+    const apps = new Set<string>()
+    for (const r of rawRows) apps.add(appGroup(r.app_name))
+    return [...apps].sort()
+  }, [rawRows])
+
   const data = useMemo(() => {
     if (!rawRows) return null
-    const filtered = filterRowsByRange(rawRows, range)
+    const filtered = filterExcluded(filterRowsByRange(rawRows, range))
     return processRows(filtered)
-  }, [rawRows, range])
+  }, [rawRows, range, filterExcluded])
 
   const fullData = useMemo(() => {
     if (!rawRows) return null
-    return processRows(rawRows)
-  }, [rawRows])
+    return processRows(filterExcluded(rawRows))
+  }, [rawRows, filterExcluded])
 
   const prevData = useMemo(() => {
     if (!rawRows || !compare) return null
-    const prevFiltered = filterRowsByPreviousRange(rawRows, range)
+    const prevFiltered = filterExcluded(filterRowsByPreviousRange(rawRows, range))
     return processRows(prevFiltered)
-  }, [rawRows, range, compare])
+  }, [rawRows, range, compare, filterExcluded])
 
   const handleData = useCallback((rows: RawActivityRow[], src: string, apiKeys?: ApiKey[]) => {
     setRawRows(rows)
@@ -127,6 +152,9 @@ export default function App() {
       cacheTimestamp={cacheTimestamp}
       compare={compare}
       onCompareToggle={() => setCompare(c => !c)}
+      allApps={allApps}
+      excludedApps={excludedApps}
+      onExcludedAppsChange={setExcludedApps}
     />
   )
 }

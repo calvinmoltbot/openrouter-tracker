@@ -11,10 +11,13 @@ interface TabModelsProps {
   data: ProcessedData
   colors: Record<string, string>
   darkMode: boolean
+  search?: string
 }
 
-export function TabModels({ data, colors, darkMode }: TabModelsProps) {
+export function TabModels({ data, colors, darkMode, search = '' }: TabModelsProps) {
   const hasLog = data.hasLogData
+  const lc = search.toLowerCase()
+  const filteredModels = lc ? data.models.filter(m => m.toLowerCase().includes(lc)) : data.models
 
   return (
     <>
@@ -37,7 +40,7 @@ export function TabModels({ data, colors, darkMode }: TabModelsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.models.map(m => {
+              {filteredModels.map(m => {
                 const t = data.modelTotals[m]
                 return (
                   <TableRow key={m}>

@@ -11,6 +11,7 @@ import { PALETTE } from '@/data/colors'
 interface TabKeysProps {
   keys: ApiKey[]
   darkMode: boolean
+  search?: string
 }
 
 function themeColors(darkMode: boolean) {
@@ -102,7 +103,7 @@ function buildKeyMonthlyConfig(keys: ApiKey[], darkMode: boolean): ChartConfigur
   }
 }
 
-export function TabKeys({ keys, darkMode }: TabKeysProps) {
+export function TabKeys({ keys, darkMode, search = '' }: TabKeysProps) {
   if (keys.length === 0) {
     return (
       <Card>
@@ -113,7 +114,10 @@ export function TabKeys({ keys, darkMode }: TabKeysProps) {
     )
   }
 
-  const sorted = [...keys].sort((a, b) => b.usage - a.usage)
+  const lc = search.toLowerCase()
+  const sorted = [...keys]
+    .sort((a, b) => b.usage - a.usage)
+    .filter(k => !lc || (k.name || k.label || k.hash).toLowerCase().includes(lc))
   const totalUsage = sorted.reduce((s, k) => s + k.usage, 0)
 
   return (

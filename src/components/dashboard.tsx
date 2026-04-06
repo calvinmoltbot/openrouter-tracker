@@ -39,6 +39,9 @@ interface DashboardProps {
   cacheTimestamp: number | null
   compare: boolean
   onCompareToggle: () => void
+  allApps: string[]
+  excludedApps: Set<string>
+  onExcludedAppsChange: (apps: Set<string>) => void
 }
 
 /** Number of days in the current budget period and days elapsed so far */
@@ -53,8 +56,8 @@ function getPeriodDays(period: BudgetPeriod): { daysInPeriod: number; daysElapse
   return { daysInPeriod: daysInMonth, daysElapsed: now.getDate() }
 }
 
-export function Dashboard({ data, fullData, prevData, rawRows, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle }: DashboardProps) {
-  const [zone, setZone] = useState<Zone>('dashboard')
+export function Dashboard({ data, fullData, prevData, rawRows, source, keys, range, onRangeChange, onReset, cacheTimestamp, compare, onCompareToggle, allApps, excludedApps, onExcludedAppsChange }: DashboardProps) {
+  const [zone, setZone] = useState<Zone>('breakdown')
   const [period, setPeriod] = useState<BudgetPeriod>(() => getBudgetPeriod())
   const [budget, setBudget] = useState(() => getBudgetForPeriod(getBudgetPeriod()))
   const [showSettings, setShowSettings] = useState(false)
@@ -165,6 +168,9 @@ export function Dashboard({ data, fullData, prevData, rawRows, source, keys, ran
           onCompareToggle={onCompareToggle}
           onReset={onReset}
           cacheTimestamp={cacheTimestamp}
+          allApps={allApps}
+          excludedApps={excludedApps}
+          onExcludedAppsChange={onExcludedAppsChange}
         />
 
         <BudgetAlertBanner
