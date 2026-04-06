@@ -91,6 +91,8 @@ export interface ProcessedData {
   apps: Record<string, AppStats>
   providers: Record<string, ProviderStats>
   keyStats: Record<string, KeyStats>
+  dailyAppCost: Record<string, number[]>
+  dailyKeyCost: Record<string, number[]>
   hourly: HourlyBucket[]
   weekly: Record<string, Record<string, number>>
   totalCost: number

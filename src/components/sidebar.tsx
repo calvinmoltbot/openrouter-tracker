@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, Table2, Settings, Sun, Moon, LogOut, Download } from 'lucide-react'
+import { LayoutGrid, Table2, Grid3X3, Settings, Sun, Moon, LogOut, Download } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { useRouter } from 'next/navigation'
 
-export type Zone = 'dashboard' | 'breakdown'
+export type Zone = 'dashboard' | 'breakdown' | 'heatmap'
 
 interface SidebarProps {
   activeZone: Zone
@@ -28,6 +28,7 @@ export function Sidebar({ activeZone, onZoneChange, onSettingsClick, onExport }:
   const navItems = [
     { id: 'dashboard' as Zone, icon: LayoutGrid, label: 'Dashboard' },
     { id: 'breakdown' as Zone, icon: Table2, label: 'Breakdown' },
+    { id: 'heatmap' as Zone, icon: Grid3X3, label: 'Heatmap' },
   ]
 
   return (

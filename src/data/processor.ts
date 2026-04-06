@@ -42,6 +42,8 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
   const appStats: Record<string, { cost: number; calls: number; models: Record<string, number>; keys: Record<string, number> }> = {}
   const providerStats: Record<string, { cost: number; calls: number }> = {}
   const keyStats: Record<string, { cost: number; calls: number; apps: Record<string, number>; models: Record<string, number> }> = {}
+  const dailyAppCost: Record<string, Record<string, number>> = {}
+  const dailyKeyCost: Record<string, Record<string, number>> = {}
   const hourly = Array.from({ length: 24 }, (_, i) => ({ hour: i, cost: 0, calls: 0 }))
   const weekly: Record<string, Record<string, number>> = {}
   let hasLogData = false
@@ -101,6 +103,9 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
     appStats[ag].calls += reqCount
     appStats[ag].models[mg] = (appStats[ag].models[mg] || 0) + cost
 
+    if (!dailyAppCost[ag]) dailyAppCost[ag] = {}
+    dailyAppCost[ag][day] = (dailyAppCost[ag][day] || 0) + cost
+
     const keyName = r.api_key_name || ''
     if (keyName) {
       appStats[ag].keys[keyName] = (appStats[ag].keys[keyName] || 0) + cost
@@ -109,6 +114,9 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
       keyStats[keyName].calls += reqCount
       keyStats[keyName].apps[ag] = (keyStats[keyName].apps[ag] || 0) + cost
       keyStats[keyName].models[mg] = (keyStats[keyName].models[mg] || 0) + cost
+
+      if (!dailyKeyCost[keyName]) dailyKeyCost[keyName] = {}
+      dailyKeyCost[keyName][day] = (dailyKeyCost[keyName][day] || 0) + cost
     }
 
     hourly[hour].cost += cost
@@ -169,6 +177,12 @@ export function processRows(rows: RawActivityRow[]): ProcessedData {
       apps: Object.fromEntries(Object.entries(v.apps).map(([a, c]) => [a, round(c)])),
       models: Object.fromEntries(Object.entries(v.models).map(([m, c]) => [m, round(c)])),
     }])),
+    dailyAppCost: Object.fromEntries(
+      Object.keys(appStats).map(a => [a, sortedDays.map(d => round(dailyAppCost[a]?.[d] || 0))])
+    ),
+    dailyKeyCost: Object.fromEntries(
+      Object.keys(keyStats).map(k => [k, sortedDays.map(d => round(dailyKeyCost[k]?.[d] || 0))])
+    ),
     hourly: hourly.map(h => ({ ...h, cost: round(h.cost) })),
     weekly,
     totalCost: round(totalCost),

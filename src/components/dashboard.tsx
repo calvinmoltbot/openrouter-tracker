@@ -10,6 +10,7 @@ import { BudgetAlertBanner } from '@/components/budget-alert-banner'
 import { SettingsModal } from '@/components/settings-modal'
 import { ZoneDashboard } from '@/components/zone-dashboard'
 import { ZoneBreakdown } from '@/components/zone-breakdown'
+import { ZoneHeatmap } from '@/components/zone-heatmap'
 import { buildColorMap } from '@/data/colors'
 import { fmt } from '@/lib/format'
 import { useTheme } from '@/lib/theme'
@@ -211,6 +212,12 @@ export function Dashboard({ data, fullData, prevData, rawRows, source, keys, ran
             weekTrend={weekTrend}
             topModel={topModel}
             topPct={topPct}
+          />
+        ) : zone === 'heatmap' ? (
+          <ZoneHeatmap
+            data={data}
+            colors={colors}
+            darkMode={darkMode}
           />
         ) : (
           <ZoneBreakdown
