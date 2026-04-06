@@ -4,9 +4,9 @@ import { useMemo, useState, useRef, useEffect } from 'react'
 import { fmt } from '@/lib/format'
 
 const GAP = 2
-const MIN_CELL = 14
-const MAX_CELL_SINGLE = 36
-const MAX_CELL_MULTI = 24
+const SINGLE_CELL = 12
+const MULTI_CELL_W = 16
+const MULTI_CELL_H = 24
 const DAY_LABELS = ['', 'M', '', 'W', '', 'F', '']
 
 export interface HeatmapRow {
@@ -22,26 +22,34 @@ interface HeatmapGridProps {
   mode: 'single' | 'multi'
 }
 
+/** Spend mode: primary pink opacity scale per Stitch spec */
+function spendColor(ratio: number, darkMode: boolean): string {
+  if (darkMode) {
+    if (ratio > 0.9) return '#ffb2bb'         // primary 100%
+    if (ratio > 0.7) return 'rgba(255,178,187,0.7)'  // primary/70
+    if (ratio > 0.5) return 'rgba(255,178,187,0.4)'  // primary/40
+    if (ratio > 0.3) return 'rgba(255,178,187,0.2)'  // primary/20
+    return 'rgba(255,178,187,0.08)'            // primary/8 (faint)
+  }
+  if (ratio > 0.9) return '#73323d'
+  if (ratio > 0.7) return '#8c4651'
+  if (ratio > 0.5) return '#c4858e'
+  if (ratio > 0.3) return '#e8bfc4'
+  return '#fde8eb'
+}
+
 function intensityColor(value: number, max: number, darkMode: boolean, baseColor?: string): string {
   if (value === 0) return darkMode ? '#0a2257' : '#f3f4f6'
 
+  const ratio = value / max
+
   if (baseColor) {
-    const opacity = Math.max(0.25, Math.min(1, value / max))
+    // Multi mode: use entity color with opacity scale
+    const opacity = Math.max(0.15, Math.min(1, ratio))
     return baseColor + Math.round(opacity * 255).toString(16).padStart(2, '0')
   }
 
-  // Monochromatic scale: surface-container-highest → tertiary
-  const ratio = value / max
-  if (darkMode) {
-    if (ratio > 0.75) return '#f1ffd4' // tertiary (peak)
-    if (ratio > 0.5) return '#d7e5bb'  // tertiary-dim
-    if (ratio > 0.25) return '#5a6745' // on-tertiary-fixed-variant
-    return '#0b1d48'                    // surface-container-high
-  }
-  if (ratio > 0.75) return '#3e4a2b'
-  if (ratio > 0.5) return '#5a6745'
-  if (ratio > 0.25) return '#d7e5bb'
-  return '#e5f4c9'
+  return spendColor(ratio, darkMode)
 }
 
 export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
@@ -61,20 +69,16 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
     return () => ro.disconnect()
   }, [])
 
-  // Single mode: GitHub-contribution grid (7 rows = Mon-Sun, columns = weeks)
-  // Multi mode: rows = entities, columns = days
   const grid = useMemo(() => {
     if (days.length === 0) return { cells: [], colCount: 0, rowCount: 0, months: [], maxVal: 0.01 }
 
     if (mode === 'single') {
-      // Aggregate values across all rows per day
       const totals = days.map((_, di) => rows.reduce((s, r) => s + (r.values[di] || 0), 0))
       const maxVal = Math.max(...totals, 0.01)
 
       const startDate = new Date(days[0] + 'T00:00:00')
       const endDate = new Date(days[days.length - 1] + 'T00:00:00')
 
-      // Align to Monday
       const aligned = new Date(startDate)
       const dow = aligned.getDay()
       aligned.setDate(aligned.getDate() + (dow === 0 ? -6 : 1 - dow))
@@ -105,7 +109,7 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
       return { cells, colCount: col + 1, rowCount: 7, months, maxVal }
     }
 
-    // Multi mode: each row is an entity
+    // Multi mode
     const maxVal = Math.max(...rows.flatMap(r => r.values), 0.01)
     const cells: { col: number; row: number; date: string; value: number; label: string; color?: string }[] = []
 
@@ -125,20 +129,28 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
     return { cells, colCount: days.length, rowCount: rows.length, months: [], maxVal }
   }, [days, rows, mode])
 
-  // Calculate cell size
+  // Cell sizing — single uses fixed 12px squares, multi uses 16×24 rectangles
   const labelPad = mode === 'multi' ? 120 : 24
   const topPad = mode === 'multi' ? 20 : 18
-  const maxCell = mode === 'multi' ? MAX_CELL_MULTI : MAX_CELL_SINGLE
 
-  const cellSize = useMemo(() => {
-    if (grid.colCount <= 0 || containerWidth <= 0) return MIN_CELL
+  const cellW = useMemo(() => {
+    if (mode === 'single') {
+      if (grid.colCount <= 0 || containerWidth <= 0) return SINGLE_CELL
+      const available = containerWidth - labelPad
+      const maxByWidth = Math.floor(available / grid.colCount) - GAP
+      return Math.max(SINGLE_CELL, Math.min(36, maxByWidth))
+    }
+    // Multi: fixed width, scrollable
+    if (grid.colCount <= 0 || containerWidth <= 0) return MULTI_CELL_W
     const available = containerWidth - labelPad
     const maxByWidth = Math.floor(available / grid.colCount) - GAP
-    return Math.max(MIN_CELL, Math.min(maxCell, maxByWidth))
-  }, [grid.colCount, containerWidth, labelPad, maxCell])
+    return Math.max(MULTI_CELL_W, Math.min(32, maxByWidth))
+  }, [mode, grid.colCount, containerWidth, labelPad])
 
-  const svgWidth = labelPad + grid.colCount * (cellSize + GAP)
-  const svgHeight = topPad + grid.rowCount * (cellSize + GAP)
+  const cellH = mode === 'multi' ? Math.max(MULTI_CELL_H, Math.round(cellW * 1.5)) : cellW
+
+  const svgWidth = labelPad + grid.colCount * (cellW + GAP)
+  const svgHeight = topPad + grid.rowCount * (cellH + GAP)
 
   return (
     <div className="overflow-x-auto relative" ref={containerRef}>
@@ -155,11 +167,12 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
                 <text
                   key={`dl-${i}`}
                   x={labelPad - 6}
-                  y={topPad + i * (cellSize + GAP) + cellSize / 2}
+                  y={topPad + i * (cellH + GAP) + cellH / 2}
                   textAnchor="end"
                   dominantBaseline="central"
                   fontSize={10}
-                  fill={darkMode ? '#9ca3af' : '#6b7280'}
+                  fill={darkMode ? '#96a9e6' : '#6b7280'}
+                  fontFamily="Inter Variable, sans-serif"
                 >
                   {label}
                 </text>
@@ -169,31 +182,33 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
               <text
                 key={`rl-${i}`}
                 x={labelPad - 6}
-                y={topPad + i * (cellSize + GAP) + cellSize / 2}
+                y={topPad + i * (cellH + GAP) + cellH / 2}
                 textAnchor="end"
                 dominantBaseline="central"
                 fontSize={10}
-                fill={darkMode ? '#d1d5db' : '#374151'}
+                fill={darkMode ? '#dfe4ff' : '#374151'}
+                fontFamily="Inter Variable, sans-serif"
               >
                 {r.label.length > 14 ? r.label.slice(0, 13) + '…' : r.label}
               </text>
             ))}
 
-        {/* Month labels (single mode only) */}
+        {/* Month labels (single mode) */}
         {grid.months
           .filter((m, i, arr) => {
             if (i === 0) return true
-            const prevX = labelPad + arr[i - 1].col * (cellSize + GAP)
-            const thisX = labelPad + m.col * (cellSize + GAP)
+            const prevX = labelPad + arr[i - 1].col * (cellW + GAP)
+            const thisX = labelPad + m.col * (cellW + GAP)
             return thisX - prevX > 30
           })
           .map((m, i) => (
             <text
               key={`ml-${i}`}
-              x={labelPad + m.col * (cellSize + GAP)}
+              x={labelPad + m.col * (cellW + GAP)}
               y={10}
               fontSize={10}
-              fill={darkMode ? '#9ca3af' : '#6b7280'}
+              fill={darkMode ? '#96a9e6' : '#6b7280'}
+              fontFamily="Inter Variable, sans-serif"
             >
               {m.label}
             </text>
@@ -203,21 +218,21 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
         {grid.cells.map((cell, i) => (
           <rect
             key={i}
-            x={labelPad + cell.col * (cellSize + GAP)}
-            y={topPad + cell.row * (cellSize + GAP)}
-            width={cellSize}
-            height={cellSize}
-            rx={2}
+            x={labelPad + cell.col * (cellW + GAP)}
+            y={topPad + cell.row * (cellH + GAP)}
+            width={cellW}
+            height={cellH}
+            rx={1}
             fill={intensityColor(cell.value, grid.maxVal, darkMode, cell.color)}
-            className="cursor-pointer"
+            className="cursor-pointer transition-opacity hover:opacity-80"
             onMouseEnter={e => {
               const rect = (e.target as SVGRectElement).getBoundingClientRect()
               const parent = (e.target as SVGRectElement).closest('.overflow-x-auto')!.getBoundingClientRect()
               const relY = rect.top - parent.top
               const flipBelow = relY < 40
               setTooltip({
-                x: rect.left - parent.left + cellSize / 2,
-                y: flipBelow ? relY + cellSize + 8 : relY - 4,
+                x: rect.left - parent.left + cellW / 2,
+                y: flipBelow ? relY + cellH + 8 : relY - 4,
                 date: cell.date,
                 value: cell.value,
                 label: cell.label,
@@ -232,19 +247,19 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="absolute pointer-events-none z-10 px-2 py-1 rounded text-xs whitespace-nowrap"
+          className="absolute pointer-events-none z-10 px-2.5 py-1.5 rounded-sm text-xs whitespace-nowrap font-medium"
           style={{
             left: tooltip.x,
             top: tooltip.y,
             transform: tooltip.flipBelow ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
-            backgroundColor: darkMode ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.95)',
-            color: darkMode ? '#f3f4f6' : '#111827',
-            border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'}`,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+            backgroundColor: darkMode ? '#0b1d48' : 'rgba(255,255,255,0.95)',
+            color: darkMode ? '#dfe4ff' : '#111827',
+            border: `1px solid ${darkMode ? 'rgba(50,69,124,0.3)' : 'rgba(0,0,0,0.1)'}`,
+            boxShadow: darkMode ? '0 4px 16px rgba(0,0,0,0.4)' : '0 2px 6px rgba(0,0,0,0.15)',
           }}
         >
-          <span className="font-medium">{tooltip.label}</span>
-          {' · '}
+          <span className="text-[#ffb2bb]">{tooltip.label}</span>
+          <span className="text-muted-foreground mx-1">·</span>
           {tooltip.date}: {fmt(tooltip.value, 4)}
         </div>
       )}
