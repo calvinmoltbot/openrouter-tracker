@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { fmt } from '@/lib/format'
 import type { ProcessedData } from '@/lib/types'
 
@@ -10,7 +10,8 @@ interface CostHeatmapProps {
   colors?: Record<string, string>
 }
 
-const CELL_SIZE = 14
+const MIN_CELL_SIZE = 14
+const MAX_CELL_SIZE = 36
 const GAP = 2
 const DAY_LABELS = ['', 'M', '', 'W', '', 'F', '']
 
@@ -65,6 +66,18 @@ function getModelColor(
 export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; date: string; cost: number; topModel?: string } | null>(null)
   const [mode, setMode] = useState<'spend' | 'model'>('spend')
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) setContainerWidth(entry.contentRect.width)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const { cells, weeks, months, maxCost, dateToIndex } = useMemo(() => {
     const costByDate: Record<string, number> = {}
@@ -140,8 +153,15 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
 
   const leftPad = 24
   const topPad = 18
-  const svgWidth = leftPad + weeks * (CELL_SIZE + GAP)
-  const svgHeight = topPad + 7 * (CELL_SIZE + GAP)
+  // Scale cells to fill container when few weeks, clamp between min and max
+  const cellSize = useMemo(() => {
+    if (weeks <= 0 || containerWidth <= 0) return MIN_CELL_SIZE
+    const available = containerWidth - leftPad
+    const maxByWidth = Math.floor(available / weeks) - GAP
+    return Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, maxByWidth))
+  }, [weeks, containerWidth])
+  const svgWidth = leftPad + weeks * (cellSize + GAP)
+  const svgHeight = topPad + 7 * (cellSize + GAP)
 
   return (
     <div>
@@ -165,7 +185,7 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
           </button>
         </div>
       </div>
-      <div className="overflow-x-auto relative">
+      <div className="overflow-x-auto relative" ref={containerRef}>
         <svg
           width={svgWidth}
           height={svgHeight}
@@ -178,7 +198,7 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
               <text
                 key={i}
                 x={leftPad - 6}
-                y={topPad + i * (CELL_SIZE + GAP) + CELL_SIZE / 2}
+                y={topPad + i * (cellSize + GAP) + cellSize / 2}
                 textAnchor="end"
                 dominantBaseline="central"
                 fontSize={10}
@@ -189,11 +209,18 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
             ) : null
           )}
 
-          {/* Month labels */}
-          {months.map((m, i) => (
+          {/* Month labels — deduplicate overlapping labels */}
+          {months
+            .filter((m, i, arr) => {
+              if (i === 0) return true
+              const prevX = leftPad + arr[i - 1].col * (cellSize + GAP)
+              const thisX = leftPad + m.col * (cellSize + GAP)
+              return thisX - prevX > 30 // skip if too close
+            })
+            .map((m, i) => (
             <text
               key={i}
-              x={leftPad + m.col * (CELL_SIZE + GAP)}
+              x={leftPad + m.col * (cellSize + GAP)}
               y={10}
               fontSize={10}
               fill={darkMode ? '#9ca3af' : '#6b7280'}
@@ -206,10 +233,10 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
           {cells.map((cell, i) => (
             <rect
               key={i}
-              x={leftPad + cell.col * (CELL_SIZE + GAP)}
-              y={topPad + cell.row * (CELL_SIZE + GAP)}
-              width={CELL_SIZE}
-              height={CELL_SIZE}
+              x={leftPad + cell.col * (cellSize + GAP)}
+              y={topPad + cell.row * (cellSize + GAP)}
+              width={cellSize}
+              height={cellSize}
               rx={2}
               fill={getCellColor(cell)}
               className="cursor-pointer"
@@ -219,7 +246,7 @@ export function CostHeatmap({ data, darkMode, colors = {} }: CostHeatmapProps) {
                 const di = dateToIndex[cell.date]
                 const topModel = di !== undefined ? getDominantModel(di) : undefined
                 setTooltip({
-                  x: rect.left - parent.left + CELL_SIZE / 2,
+                  x: rect.left - parent.left + cellSize / 2,
                   y: rect.top - parent.top - 4,
                   date: cell.date,
                   cost: cell.cost,
