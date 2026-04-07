@@ -85,37 +85,37 @@
 }
 
 .dark {
-    --background: oklch(0.06 0.005 270);
-    --foreground: oklch(0.93 0.01 270);
-    --card: oklch(0.14 0.01 270 / 80%);
-    --card-foreground: oklch(0.93 0.01 270);
-    --popover: oklch(0.16 0.01 270);
-    --popover-foreground: oklch(0.93 0.01 270);
+    --background: #0c0f1a;
+    --foreground: #d8dce8;
+    --card: #161a28;
+    --card-foreground: #d8dce8;
+    --popover: #1c2030;
+    --popover-foreground: #d8dce8;
     --primary: #c4a0a6;
-    --primary-foreground: oklch(0.15 0 0);
-    --secondary: oklch(0.22 0.01 270);
-    --secondary-foreground: oklch(0.90 0 0);
-    --muted: oklch(0.18 0.01 270);
-    --muted-foreground: oklch(0.60 0.01 270);
-    --accent: oklch(0.20 0.01 270);
-    --accent-foreground: oklch(0.93 0 0);
+    --primary-foreground: #1a1520;
+    --secondary: #252a38;
+    --secondary-foreground: #d0d4e0;
+    --muted: #1e2230;
+    --muted-foreground: #808898;
+    --accent: #222638;
+    --accent-foreground: #d8dce8;
     --destructive: #c87a76;
-    --border: oklch(1 0 0 / 8%);
-    --input: oklch(1 0 0 / 10%);
-    --ring: oklch(0.55 0.02 270);
+    --border: rgba(255, 255, 255, 0.08);
+    --input: rgba(255, 255, 255, 0.10);
+    --ring: #606878;
     --chart-1: #c4a0a6;
     --chart-2: #8a9baf;
     --chart-3: #a8b88e;
     --chart-4: #b8949a;
     --chart-5: #7a8aa0;
-    --sidebar: oklch(0.08 0.005 270);
-    --sidebar-foreground: oklch(0.90 0 0);
+    --sidebar: #0a0d16;
+    --sidebar-foreground: #d0d4e0;
     --sidebar-primary: #c4a0a6;
-    --sidebar-primary-foreground: oklch(0.15 0 0);
-    --sidebar-accent: oklch(0.18 0.01 270);
-    --sidebar-accent-foreground: oklch(0.90 0 0);
-    --sidebar-border: oklch(1 0 0 / 8%);
-    --sidebar-ring: oklch(0.55 0.02 270);
+    --sidebar-primary-foreground: #1a1520;
+    --sidebar-accent: #1e2230;
+    --sidebar-accent-foreground: #d0d4e0;
+    --sidebar-border: rgba(255, 255, 255, 0.08);
+    --sidebar-ring: #606878;
 }
 
 @layer base {
@@ -132,21 +132,19 @@
 
 /* Glass card effect */
 .glass-card {
-  background: oklch(0.14 0.01 270 / 60%);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(1 0 0 / 6%);
+  background: #161a28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0.5rem;
 }
 .glass-card:hover {
-  background: oklch(0.16 0.01 270 / 70%);
-  border-color: oklch(1 0 0 / 10%);
+  background: #1c2030;
+  border-color: rgba(255, 255, 255, 0.10);
 }
 
 /* Light mode glass */
 :root .glass-card {
-  background: oklch(1 0 0 / 80%);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(0 0 0 / 6%);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* Card hover micro-interactions */
