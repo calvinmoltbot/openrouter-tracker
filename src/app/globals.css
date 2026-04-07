@@ -142,7 +142,7 @@
 }
 
 /* Light mode glass */
-:root .glass-card {
+:root:not(.dark) .glass-card {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
