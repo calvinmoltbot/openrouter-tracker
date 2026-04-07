@@ -147,6 +147,14 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+/* Force dark card backgrounds */
+.dark [data-slot="card"] {
+  background: #161a28;
+}
+.dark canvas {
+  background: transparent !important;
+}
+
 /* Card hover micro-interactions */
 [data-slot="card"] {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;

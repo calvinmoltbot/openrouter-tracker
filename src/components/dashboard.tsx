@@ -27,6 +27,10 @@ import type { ProcessedData, ApiKey, RawActivityRow } from '@/lib/types'
 
 Chart.register(...registerables)
 
+// Force transparent canvas background in all charts
+Chart.defaults.backgroundColor = 'transparent'
+Chart.defaults.plugins.legend.labels.color = '#808898'
+
 interface DashboardProps {
   data: ProcessedData
   fullData: ProcessedData | null

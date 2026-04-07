@@ -18,7 +18,19 @@ export function ChartBox({ config, height = 300 }: ChartBoxProps) {
   useEffect(() => {
     if (chartRef.current) chartRef.current.destroy()
     if (!canvasRef.current || !config) return
-    chartRef.current = new Chart(canvasRef.current, config)
+    // Ensure transparent canvas background in dark mode
+    const cfg = {
+      ...config,
+      options: {
+        ...config.options,
+        plugins: {
+          ...config.options?.plugins,
+        },
+      },
+    }
+    chartRef.current = new Chart(canvasRef.current, cfg)
+    // Set canvas background to transparent
+    canvasRef.current.style.background = 'transparent'
     return () => { if (chartRef.current) chartRef.current.destroy() }
   }, [config])
 

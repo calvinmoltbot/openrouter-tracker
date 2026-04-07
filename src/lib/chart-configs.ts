@@ -7,13 +7,13 @@ type Colors = Record<string, string>
 
 function themeColors(darkMode: boolean) {
   return {
-    gridColor: darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    tickColor: darkMode ? '#9ca3af' : '#6b7280',
-    legendColor: darkMode ? '#9ca3af' : '#6b7280',
-    tooltipBg: darkMode ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.9)',
-    tooltipTitleColor: darkMode ? '#f3f4f6' : '#111827',
-    tooltipBodyColor: darkMode ? '#d1d5db' : '#374151',
-    borderColor: darkMode ? 'rgba(255,255,255,0.15)' : '#fff',
+    gridColor: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)',
+    tickColor: darkMode ? '#808898' : '#6b7280',
+    legendColor: darkMode ? '#808898' : '#6b7280',
+    tooltipBg: darkMode ? '#1c2030' : 'rgba(255,255,255,0.95)',
+    tooltipTitleColor: darkMode ? '#d8dce8' : '#111827',
+    tooltipBodyColor: darkMode ? '#a0a8b8' : '#374151',
+    borderColor: darkMode ? 'rgba(255,255,255,0.08)' : '#fff',
   }
 }
 
