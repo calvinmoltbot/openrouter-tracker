@@ -23,11 +23,11 @@ const views: { id: View; label: string }[] = [
 
 function getStatusBadge(activeDays: number, totalDays: number, avgDaily: number, overallAvg: number) {
   const ratio = totalDays > 0 ? activeDays / totalDays : 0
-  if (avgDaily > overallAvg * 2) return { label: 'Spiking', color: '#ee7d77' }
-  if (ratio > 0.8 && avgDaily <= overallAvg * 1.2) return { label: 'Stable', color: '#909fb4' }
-  if (avgDaily <= overallAvg * 0.5) return { label: 'Efficient', color: '#f1ffd4' }
-  if (ratio < 0.3) return { label: 'Low-Use', color: '#96a9e6' }
-  return { label: 'Active', color: '#ffb2bb' }
+  if (avgDaily > overallAvg * 2) return { label: 'Spiking', color: '#c87a76' }
+  if (ratio > 0.8 && avgDaily <= overallAvg * 1.2) return { label: 'Stable', color: '#8a9baf' }
+  if (avgDaily <= overallAvg * 0.5) return { label: 'Efficient', color: '#a8b88e' }
+  if (ratio < 0.3) return { label: 'Low-Use', color: '#8090b0' }
+  return { label: 'Active', color: '#c4a0a6' }
 }
 
 export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
@@ -87,17 +87,16 @@ export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
             {data.dateRange} &middot; {view === 'spend' ? 'Daily spend velocity' : `Per-${view} intensity matrix`}
           </p>
         </div>
-        <div className="flex gap-0.5 p-0.5 rounded-md" style={{ background: darkMode ? '#09122b' : '#f0f2f5' }}>
+        <div className="flex gap-0.5 bg-muted rounded-lg p-0.5">
           {views.map(v => (
             <button
               key={v.id}
               onClick={() => setView(v.id)}
-              className={`px-3.5 py-1.5 rounded-sm text-sm font-medium transition-colors ${
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 view === v.id
-                  ? 'text-[#6b2c36]'
+                  ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
-              style={view === v.id ? { background: '#ffb2bb' } : undefined}
             >
               {v.label}
             </button>
@@ -165,7 +164,7 @@ export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
                   <div className="flex items-baseline gap-2">
                     <span className="text-xl font-bold font-heading text-foreground">{fmt(total)}</span>
                     {trendPct !== 0 && (
-                      <span className="flex items-center gap-0.5 text-xs" style={{ color: trendPct > 0 ? '#ffb2bb' : '#f1ffd4' }}>
+                      <span className="flex items-center gap-0.5 text-xs" style={{ color: trendPct > 0 ? '#c4a0a6' : '#a8b88e' }}>
                         {trendPct > 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
                         {Math.abs(Math.round(trendPct))}%
                       </span>
@@ -193,11 +192,11 @@ export function ZoneHeatmap({ data, colors, darkMode }: ZoneHeatmapProps) {
       {mode === 'single' && (
         <div className="mt-4 flex items-center gap-2 text-[10px] text-muted-foreground">
           <span>Less</span>
-          {[0.08, 0.2, 0.4, 0.7, 1].map((opacity, i) => (
+          {[0.10, 0.25, 0.45, 0.7, 1].map((opacity, i) => (
             <span
               key={i}
               className="inline-block w-3 h-3 rounded-[1px]"
-              style={{ background: darkMode ? `rgba(255,178,187,${opacity})` : `rgba(115,50,61,${opacity})` }}
+              style={{ background: darkMode ? `rgba(196,160,166,${opacity})` : `rgba(107,74,80,${opacity})` }}
             />
           ))}
           <span>More</span>

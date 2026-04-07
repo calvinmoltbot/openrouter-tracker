@@ -132,7 +132,7 @@ export function ZoneDashboard({
     const tc = themeColors(darkMode)
     const barColors = todayData.hourly.map(h =>
       h.hour > currentHour ? 'rgba(100,100,100,0.2)' :
-        h.cost > 2 ? '#ffb2bbcc' : h.cost > 0.5 ? '#f9a0abcc' : '#909fb4cc'
+        h.cost > 2 ? '#c4a0a6cc' : h.cost > 0.5 ? '#b8949acc' : '#8a9bafcc'
     )
     return {
       type: 'bar',

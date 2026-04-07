@@ -75,8 +75,8 @@ export function ExecutiveSummary({ data, fullData, budget }: ExecutiveSummaryPro
   const projectionColor = projected > budget
     ? 'text-primary'
     : hasPrevMonth && projected > prevMonthCost
-      ? 'text-[#f9a0ab]'
-      : 'text-[#f1ffd4]'
+      ? 'text-[#b8949a]'
+      : 'text-[#a8b88e]'
 
   return (
     <div className="mb-4 glass-card p-5 sm:p-6">
@@ -95,11 +95,11 @@ export function ExecutiveSummary({ data, fullData, budget }: ExecutiveSummaryPro
                 {delta > 0 ? (
                   <TrendingUp className="size-4 text-primary" />
                 ) : delta < 0 ? (
-                  <TrendingDown className="size-4 text-[#f1ffd4]" />
+                  <TrendingDown className="size-4 text-[#a8b88e]" />
                 ) : (
                   <Minus className="size-4 text-muted-foreground" />
                 )}
-                <span className={delta > 0 ? 'text-primary' : delta < 0 ? 'text-[#f1ffd4]' : 'text-muted-foreground'}>
+                <span className={delta > 0 ? 'text-primary' : delta < 0 ? 'text-[#a8b88e]' : 'text-muted-foreground'}>
                   {delta > 0 ? 'Up' : delta < 0 ? 'Down' : 'Flat'} {Math.abs(Math.round(delta))}% from last month
                 </span>
               </>

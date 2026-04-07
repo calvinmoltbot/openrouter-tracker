@@ -22,24 +22,24 @@ interface HeatmapGridProps {
   mode: 'single' | 'multi'
 }
 
-/** Spend mode: primary pink opacity scale per Stitch spec */
+/** Spend mode: muted rose opacity scale */
 function spendColor(ratio: number, darkMode: boolean): string {
   if (darkMode) {
-    if (ratio > 0.9) return '#ffb2bb'         // primary 100%
-    if (ratio > 0.7) return 'rgba(255,178,187,0.7)'  // primary/70
-    if (ratio > 0.5) return 'rgba(255,178,187,0.4)'  // primary/40
-    if (ratio > 0.3) return 'rgba(255,178,187,0.2)'  // primary/20
-    return 'rgba(255,178,187,0.08)'            // primary/8 (faint)
+    if (ratio > 0.9) return '#c4a0a6'
+    if (ratio > 0.7) return 'rgba(196,160,166,0.7)'
+    if (ratio > 0.5) return 'rgba(196,160,166,0.45)'
+    if (ratio > 0.3) return 'rgba(196,160,166,0.25)'
+    return 'rgba(196,160,166,0.10)'
   }
-  if (ratio > 0.9) return '#73323d'
-  if (ratio > 0.7) return '#8c4651'
-  if (ratio > 0.5) return '#c4858e'
-  if (ratio > 0.3) return '#e8bfc4'
-  return '#fde8eb'
+  if (ratio > 0.9) return '#6b4a50'
+  if (ratio > 0.7) return '#8a6068'
+  if (ratio > 0.5) return '#b8949a'
+  if (ratio > 0.3) return '#dcc4c8'
+  return '#f2e8ea'
 }
 
 function intensityColor(value: number, max: number, darkMode: boolean, baseColor?: string): string {
-  if (value === 0) return darkMode ? '#0a2257' : '#f3f4f6'
+  if (value === 0) return darkMode ? 'rgba(255,255,255,0.04)' : '#f3f4f6'
 
   const ratio = value / max
 
@@ -171,7 +171,7 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
                   textAnchor="end"
                   dominantBaseline="central"
                   fontSize={10}
-                  fill={darkMode ? '#96a9e6' : '#6b7280'}
+                  fill={darkMode ? '#8090b0' : '#6b7280'}
                   fontFamily="Inter Variable, sans-serif"
                 >
                   {label}
@@ -186,7 +186,7 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
                 textAnchor="end"
                 dominantBaseline="central"
                 fontSize={10}
-                fill={darkMode ? '#dfe4ff' : '#374151'}
+                fill={darkMode ? '#d0d4e0' : '#374151'}
                 fontFamily="Inter Variable, sans-serif"
               >
                 {r.label.length > 14 ? r.label.slice(0, 13) + '…' : r.label}
@@ -207,7 +207,7 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
               x={labelPad + m.col * (cellW + GAP)}
               y={10}
               fontSize={10}
-              fill={darkMode ? '#96a9e6' : '#6b7280'}
+              fill={darkMode ? '#8090b0' : '#6b7280'}
               fontFamily="Inter Variable, sans-serif"
             >
               {m.label}
@@ -253,7 +253,7 @@ export function HeatmapGrid({ days, rows, darkMode, mode }: HeatmapGridProps) {
             top: tooltip.y,
             transform: tooltip.flipBelow ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
             backgroundColor: darkMode ? '#0b1d48' : 'rgba(255,255,255,0.95)',
-            color: darkMode ? '#dfe4ff' : '#111827',
+            color: darkMode ? '#d0d4e0' : '#111827',
             border: `1px solid ${darkMode ? 'rgba(50,69,124,0.3)' : 'rgba(0,0,0,0.1)'}`,
             boxShadow: darkMode ? '0 4px 16px rgba(0,0,0,0.4)' : '0 2px 6px rgba(0,0,0,0.15)',
           }}

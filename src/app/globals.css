@@ -85,37 +85,37 @@
 }
 
 .dark {
-    --background: #070d1f;
-    --foreground: #dfe4ff;
-    --card: #0a1839;
-    --card-foreground: #dfe4ff;
-    --popover: #0b1d48;
-    --popover-foreground: #dfe4ff;
-    --primary: #ffb2bb;
-    --primary-foreground: #6b2c36;
-    --secondary: #2e3c4e;
-    --secondary-foreground: #d4e4fa;
-    --muted: #09122b;
-    --muted-foreground: #96a9e6;
-    --accent: #0b1d48;
-    --accent-foreground: #dfe4ff;
-    --destructive: #ee7d77;
-    --border: rgba(50, 69, 124, 0.15);
-    --input: rgba(50, 69, 124, 0.25);
-    --ring: #6073ad;
-    --chart-1: #ffb2bb;
-    --chart-2: #909fb4;
-    --chart-3: #f1ffd4;
-    --chart-4: #f9a0ab;
-    --chart-5: #6073ad;
-    --sidebar: #000000;
-    --sidebar-foreground: #dfe4ff;
-    --sidebar-primary: #ffb2bb;
-    --sidebar-primary-foreground: #6b2c36;
-    --sidebar-accent: #0a1839;
-    --sidebar-accent-foreground: #dfe4ff;
-    --sidebar-border: rgba(50, 69, 124, 0.15);
-    --sidebar-ring: #6073ad;
+    --background: oklch(0.06 0.005 270);
+    --foreground: oklch(0.93 0.01 270);
+    --card: oklch(0.14 0.01 270 / 80%);
+    --card-foreground: oklch(0.93 0.01 270);
+    --popover: oklch(0.16 0.01 270);
+    --popover-foreground: oklch(0.93 0.01 270);
+    --primary: #c4a0a6;
+    --primary-foreground: oklch(0.15 0 0);
+    --secondary: oklch(0.22 0.01 270);
+    --secondary-foreground: oklch(0.90 0 0);
+    --muted: oklch(0.18 0.01 270);
+    --muted-foreground: oklch(0.60 0.01 270);
+    --accent: oklch(0.20 0.01 270);
+    --accent-foreground: oklch(0.93 0 0);
+    --destructive: #c87a76;
+    --border: oklch(1 0 0 / 8%);
+    --input: oklch(1 0 0 / 10%);
+    --ring: oklch(0.55 0.02 270);
+    --chart-1: #c4a0a6;
+    --chart-2: #8a9baf;
+    --chart-3: #a8b88e;
+    --chart-4: #b8949a;
+    --chart-5: #7a8aa0;
+    --sidebar: oklch(0.08 0.005 270);
+    --sidebar-foreground: oklch(0.90 0 0);
+    --sidebar-primary: #c4a0a6;
+    --sidebar-primary-foreground: oklch(0.15 0 0);
+    --sidebar-accent: oklch(0.18 0.01 270);
+    --sidebar-accent-foreground: oklch(0.90 0 0);
+    --sidebar-border: oklch(1 0 0 / 8%);
+    --sidebar-ring: oklch(0.55 0.02 270);
 }
 
 @layer base {
@@ -130,23 +130,23 @@
   }
 }
 
-/* Glass card effect — The Obsidian Lens */
+/* Glass card effect */
 .glass-card {
-  background: #0a1839;
-  box-shadow: inset 0 1px 0 0 rgba(255, 198, 204, 0.06);
-  border: 1px solid rgba(50, 69, 124, 0.15);
-  border-radius: 0.25rem;
+  background: oklch(0.14 0.01 270 / 60%);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 6%);
+  border-radius: 0.5rem;
 }
 .glass-card:hover {
-  background: #0b1d48;
-  border-color: rgba(50, 69, 124, 0.25);
+  background: oklch(0.16 0.01 270 / 70%);
+  border-color: oklch(1 0 0 / 10%);
 }
 
 /* Light mode glass */
 :root .glass-card {
-  background: #ffffff;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: oklch(1 0 0 / 80%);
+  backdrop-filter: blur(12px);
+  border: 1px solid oklch(0 0 0 / 6%);
 }
 
 /* Card hover micro-interactions */

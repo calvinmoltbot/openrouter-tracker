@@ -1,7 +1,7 @@
 export const PALETTE: string[] = [
-  '#ffb2bb', '#909fb4', '#f1ffd4', '#f9a0ab',
-  '#c6d6ec', '#d7e5bb', '#96a9e6', '#ffc6cc',
-  '#6073ad', '#ee7d77', '#d4e4fa', '#e2f1c6',
+  '#c4a0a6', '#8a9baf', '#a8b88e', '#b8949a',
+  '#7a8aa0', '#9aab82', '#a094b8', '#c0a080',
+  '#7c9a8e', '#b08a8a', '#8896a8', '#a0a878',
 ]
 
 export function getModelColor(_model: string, index: number): string {
