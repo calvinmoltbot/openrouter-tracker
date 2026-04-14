@@ -1,17 +1,33 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/db'
 import { logRows } from '@/db/schema'
-import { desc } from 'drizzle-orm'
+import { and, desc, gt, gte } from 'drizzle-orm'
 
-export async function GET() {
+const DEFAULT_DAYS = 90
+const MAX_ROWS = 10000
+
+export async function GET(request: NextRequest) {
   try {
+    const url = new URL(request.url)
+    const sinceParam = url.searchParams.get('since')
+
+    const since = sinceParam
+      ? new Date(sinceParam)
+      : new Date(Date.now() - DEFAULT_DAYS * 24 * 60 * 60 * 1000)
+
+    // When incrementally fetching, we want rows strictly newer than `since`
+    // so clients don't re-receive the boundary row they already have.
+    const predicate = sinceParam
+      ? gt(logRows.createdAt, since)
+      : gte(logRows.createdAt, since)
+
     const rows = await db()
       .select()
       .from(logRows)
+      .where(and(predicate))
       .orderBy(desc(logRows.createdAt))
-      .limit(10000)
+      .limit(MAX_ROWS)
 
-    // Map back to RawActivityRow shape for the client
     const mapped = rows.map(r => ({
       created_at: r.createdAt.toISOString(),
       model_permaslug: r.model,
@@ -29,7 +45,15 @@ export async function GET() {
       ...(r.apiKeyName && { api_key_name: r.apiKeyName }),
     }))
 
-    return NextResponse.json({ rows: mapped, count: mapped.length })
+    return NextResponse.json(
+      { rows: mapped, count: mapped.length },
+      {
+        headers: {
+          // Short private cache so reloads within a minute don't re-hit the DB
+          'Cache-Control': 'private, max-age=60',
+        },
+      },
+    )
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : String(e) },

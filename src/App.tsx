@@ -29,40 +29,70 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [compare, setCompare] = useState(false)
 
-  // Load data: try server DB first, fall back to client cache
+  // Load data: cache-first, then incrementally top up from server.
+  // Cache <5min old skips the network entirely; otherwise we fetch only rows
+  // newer than the most recent cached row. A full fetch only happens when
+  // there is no local cache.
   useEffect(() => {
+    const FRESH_MS = 5 * 60 * 1000
+
+    function maxTimestamp(rows: RawActivityRow[]): string | null {
+      let max: string | null = null
+      for (const r of rows) {
+        if (r.created_at && (!max || r.created_at > max)) max = r.created_at
+      }
+      return max
+    }
+
     async function loadData() {
-      // Try fetching from server DB
+      const cached = await getCachedData()
+
+      // Fresh cache — render immediately, no network
+      if (cached && Date.now() - cached.timestamp < FRESH_MS) {
+        setRawRows(cached.rawRows)
+        setSource(cached.source)
+        setKeys(cached.keys)
+        setCacheTimestamp(cached.timestamp)
+        setLoading(false)
+        return
+      }
+
+      // Stale or no cache — incremental fetch if we have a baseline, full otherwise
+      const since = cached ? maxTimestamp(cached.rawRows) : null
+      const url = since ? `/api/logs?since=${encodeURIComponent(since)}` : '/api/logs'
+
       try {
-        const res = await fetch('/api/logs')
+        const res = await fetch(url)
         if (res.ok) {
           const json = await res.json()
-          if (json.rows && json.rows.length > 0) {
-            setRawRows(json.rows)
-            setSource('db')
+          const newRows: RawActivityRow[] = json.rows ?? []
+          const merged = cached ? [...newRows, ...cached.rawRows] : newRows
+
+          if (merged.length > 0) {
+            setRawRows(merged)
+            setSource(cached?.source || 'db')
             setCacheTimestamp(Date.now())
-            // Also fetch API keys (best-effort)
-            try {
-              const keysRes = await fetch('/api/keys')
-              if (keysRes.ok) {
-                const keysJson = await keysRes.json()
-                const k = Array.isArray(keysJson) ? keysJson : (keysJson.data ?? [])
-                setKeys(k)
-                cacheData(json.rows, 'db', k)
-              } else {
-                cacheData(json.rows, 'db', [])
-              }
-            } catch {
-              cacheData(json.rows, 'db', [])
+
+            // Refresh keys only on full loads; incremental updates don't need them
+            let nextKeys = cached?.keys ?? []
+            if (!since) {
+              try {
+                const keysRes = await fetch('/api/keys')
+                if (keysRes.ok) {
+                  const keysJson = await keysRes.json()
+                  nextKeys = Array.isArray(keysJson) ? keysJson : (keysJson.data ?? [])
+                }
+              } catch { /* keep previous keys */ }
             }
+            setKeys(nextKeys)
+            cacheData(merged, cached?.source || 'db', nextKeys)
             setLoading(false)
             return
           }
         }
       } catch { /* fall through to cache */ }
 
-      // Fall back to client-side cache
-      const cached = await getCachedData()
+      // Network failed or empty response — fall back to cache if we have one
       if (cached) {
         setRawRows(cached.rawRows)
         setSource(cached.source)
